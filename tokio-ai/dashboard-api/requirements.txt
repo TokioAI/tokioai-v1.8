@@ -3,7 +3,7 @@ uvicorn[standard]==0.32.0
 psycopg2-binary>=2.9.9
 kafka-python==2.0.2
 pydantic==2.9.0
-python-multipart==0.0.12
+python-multipart==0.0.22
 bcrypt==4.1.1
 watchdog==3.0.0
 google-generativeai==0.3.0
