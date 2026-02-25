@@ -47,7 +47,7 @@ TokioAI combines intelligent Web Application Firewall (WAF) capabilities with ma
 
 ### 🔌 Complete Integrations
 - **Telegram Bot**: Full control from Telegram, real-time alerts, security ACL
-- **Home Assistant + Alexa**: Voice control of SOC operations via Alexa Media Player
+- **Home Assistant + Alexa**: Control from Home Assistant
 - **SSH Host Control**: Complete remote administration via SSH
 - **Router Control**: OpenWrt/GL.iNet router management (firewall, DNS, DHCP, VPN)
 - **DNS Management**: Automated DNS management via Hostinger API
@@ -344,7 +344,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📧 Contact
 
 - **Website**: [tokioia.com](https://tokioia.com)
-- **GitHub**: [@yourusername](https://github.com/yourusername)
+- **GitHub**: [@TokioAI](https://github.com/TokioAI)
 - **Issues**: [GitHub Issues](https://github.com/yourusername/TokioAI/issues)
 
 ---
