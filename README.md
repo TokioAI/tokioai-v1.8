@@ -332,7 +332,17 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for de
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)** - see the [LICENSE](LICENSE) file for details.
+
+### Why GPL v3?
+
+For a security-focused project like TokioAI, GPL v3 ensures:
+- **Transparency**: All improvements and derivatives must remain open source
+- **Security**: Prevents proprietary forks that could hide vulnerabilities
+- **Community**: Guarantees that enhancements benefit everyone
+- **Protection**: Prevents the code from being privatized by commercial entities
+
+This aligns with our values of open security research and collaborative development.
 
 ## 🙏 Acknowledgments
 

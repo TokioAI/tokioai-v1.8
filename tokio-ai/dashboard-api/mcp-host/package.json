@@ -19,7 +19,7 @@
     "incidents"
   ],
   "author": "SOAR MCP Server",
-  "license": "Apache-2.0",
+  "license": "GPL-3.0",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.37.0",
     "@google/generative-ai": "^0.21.0",
