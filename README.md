@@ -298,6 +298,58 @@ The dashboard uses JWT-based authentication. Include the session cookie in reque
 - **XSS protection** via content security policies
 - **Rate limiting** on API endpoints
 
+### WAF Anomaly Score Threshold Tuning
+
+The WAF uses OWASP ModSecurity Core Rule Set (CRS) with an **anomaly scoring system**. Attacks are detected and assigned points, and only blocked when the total score exceeds a threshold.
+
+**Current Configuration:**
+- **Inbound threshold**: `3` (default was 5)
+- **Outbound threshold**: `4`
+- **Paranoia level**: `2` (moderate strictness)
+
+**How to Adjust the Threshold:**
+
+1. **Edit the CRS configuration file:**
+   ```bash
+   nano waf-deployment/modsecurity/crs-config/crs-setup.conf
+   ```
+
+2. **Find the threshold setting (line ~49):**
+   ```apache
+   setvar:tx.inbound_anomaly_score_threshold=3,\
+   ```
+
+3. **Adjust the value:**
+   - **Lower values (1-3)**: More aggressive blocking, fewer false negatives, but may increase false positives
+   - **Higher values (5-10)**: Less aggressive, fewer false positives, but may allow some attacks through
+   - **Recommended**: Start with `3` and adjust based on your traffic patterns
+
+4. **Apply changes:**
+   ```bash
+   # If using Docker Compose locally
+   docker-compose restart modsecurity-nginx
+   
+   # If deployed on GCP, copy the file and restart:
+   gcloud compute scp waf-deployment/modsecurity/crs-config/crs-setup.conf \
+       VM_NAME:/path/to/deployment/modsecurity/crs-config/crs-setup.conf
+   gcloud compute ssh VM_NAME --command="cd /path/to/deployment && docker-compose restart modsecurity-nginx"
+   ```
+
+**Understanding the Scoring System:**
+- Each attack pattern detected adds points to `tx.anomaly_score`
+- Common attack scores:
+  - XSS: ~4-6 points
+  - SQL Injection: ~5-8 points
+  - Path Traversal: ~3-5 points
+  - Command Injection: ~6-8 points
+- If total score >= threshold → Request is blocked with **403 Forbidden**
+- If total score < threshold → Request passes (but is still logged)
+
+**Troubleshooting:**
+- If you see attacks detected but returning 404 instead of 403, the threshold may be too high
+- If you see legitimate traffic being blocked, increase the threshold
+- Monitor your logs to find the optimal balance for your environment
+
 ## 🧪 Testing
 
 ```bash
