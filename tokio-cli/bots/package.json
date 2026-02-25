@@ -7,9 +7,10 @@
     "start": "node whatsapp_web_bot.js"
   },
   "dependencies": {
-    "whatsapp-web.js": "^1.23.0",
+    "axios": "^1.6.0",
+    "minimatch": "^10.2.4",
     "qrcode-terminal": "^0.12.0",
-    "axios": "^1.6.0"
+    "whatsapp-web.js": "^1.23.0"
   },
   "engines": {
     "node": ">=16.0.0"
