@@ -1,0 +1,24 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install ffmpeg for audio conversion
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Prefer IPv4 when both A and AAAA exist (some networks/ISPs have flaky IPv6).
+# This reduces sporadic ConnectTimeout to api.telegram.org observed in the field.
+RUN printf '%s\n' 'precedence ::ffff:0:0/96  100' > /etc/gai.conf
+
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY telegram_bot.py /app/
+
+ENV TELEGRAM_BOT_TOKEN=""
+ENV CLI_SERVICE_URL="http://tokio-cli:8100"
+
+CMD ["python", "telegram_bot.py"]

@@ -1,0 +1,17 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY whatsapp_bot.py /app/
+
+ENV TWILIO_ACCOUNT_SID=""
+ENV TWILIO_AUTH_TOKEN=""
+ENV CLI_SERVICE_URL="http://tokio-cli:8100"
+ENV WHATSAPP_BOT_PORT=5000
+
+EXPOSE 5000
+
+CMD ["python", "whatsapp_bot.py"]

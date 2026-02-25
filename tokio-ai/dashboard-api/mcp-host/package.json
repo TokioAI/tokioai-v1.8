@@ -1,0 +1,55 @@
+{
+  "name": "soar-mcp-host",
+  "version": "1.0.0",
+  "description": "MCP Host para SOAR - Conecta LLMs con servidores MCP para gestión de incidentes",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "mcp",
+    "soar",
+    "security",
+    "llm",
+    "gemini",
+    "incidents"
+  ],
+  "author": "SOAR MCP Server",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.37.0",
+    "@google/generative-ai": "^0.21.0",
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.7",
+    "node-fetch": "^2.7.0",
+    "openai": "^4.85.0",
+    "ora": "^8.1.1",
+    "uuid": "^9.0.1",
+    "zod": "^3.24.1",
+    "boxen": "^7.1.1",
+    "gradient-string": "^2.0.2",
+    "@types/gradient-string": "^1.0.0",
+    "cli-table3": "^0.6.5",
+    "terminal-link": "^3.0.0",
+    "strip-ansi": "^7.1.0",
+    "ansi-escapes": "^6.2.1",
+    "figures": "^6.1.0",
+    "ink": "^4.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/node-fetch": "^2.6.13",
+    "@types/uuid": "^10.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

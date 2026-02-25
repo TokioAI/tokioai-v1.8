@@ -1,0 +1,5 @@
+FROM python:3.11-slim
+WORKDIR /app
+RUN pip install --no-cache-dir kafka-python watchdog
+COPY log-processor.py .
+CMD ["python3", "log-processor.py"]

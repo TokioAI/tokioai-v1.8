@@ -1,0 +1,57 @@
+FROM node:18-slim
+
+# Instalar dependencias del sistema + Chromium (como lo hacen proyectos profesionales)
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    ca-certificates \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libatspi2.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libdrm2 \
+    libgbm1 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libwayland-client0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxkbcommon0 \
+    libxrandr2 \
+    xdg-utils \
+    chromium \
+    chromium-sandbox \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configurar Chromium para Puppeteer
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+WORKDIR /app
+
+# Copiar package.json e instalar dependencias
+COPY tokio-cli/bots/package.json ./
+RUN npm install
+
+# Copiar el bot después de instalar dependencias (mejor para cache)
+COPY tokio-cli/bots/whatsapp_web_bot.js ./
+
+# Crear directorio para sesión
+RUN mkdir -p /app/whatsapp-session
+
+# Variables de entorno
+ENV CLI_SERVICE_URL=http://tokio-cli:8100
+ENV NODE_ENV=production
+ENV CHROME_BIN=/usr/bin/chromium
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+# Exponer puerto (no necesario para WhatsApp Web, pero por si acaso)
+EXPOSE 3000
+
+# Comando para iniciar
+CMD ["node", "whatsapp_web_bot.js"]

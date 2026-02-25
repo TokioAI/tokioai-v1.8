@@ -1,0 +1,45 @@
+{
+  "server": {
+    "name": "soar-mcp-server",
+    "version": "1.0.0",
+    "description": "MCP Server para SOAR con integración de incidentes, Kafka y PostgreSQL"
+  },
+  "tools": {
+    "soar": [
+      "get_incident",
+      "list_incidents",
+      "create_incident",
+      "update_incident",
+      "close_incident",
+      "search_incidents"
+    ],
+    "kafka": [
+      "consume_messages",
+      "produce_message",
+      "list_topics",
+      "get_message_count"
+    ],
+    "postgresql": [
+      "query_data",
+      "insert_data",
+      "update_data",
+      "delete_data",
+      "get_table_schema"
+    ]
+  },
+  "gemini": {
+    "provider": "gemini",
+    "model": "gemini-2.0-flash",
+    "enabled": true
+  },
+  "kafka": {
+    "bootstrap_servers": "localhost:9092",
+    "default_topic": "soar-incidents"
+  },
+  "postgresql": {
+    "host": "localhost",
+    "port": 5432,
+    "database": "soar_db",
+    "user": "soar_user"
+  }
+}

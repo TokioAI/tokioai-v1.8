@@ -1,0 +1,2504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Tokio AI - Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a1f3a 0%, #2d3561 100%);
+            padding: 20px 30px;
+            border-bottom: 2px solid #4a90e2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #4a90e2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo::before {
+            content: "🌀";
+            font-size: 32px;
+        }
+        
+        .stats-bar {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4a90e2;
+        }
+        
+        .tabs {
+            background: #1a1f3a;
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #2d3561;
+            padding: 0 20px;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            color: #9ca3af;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .tab:hover {
+            color: #4a90e2;
+            background: #252b4a;
+        }
+        
+        .tab.active {
+            color: #4a90e2;
+            border-bottom-color: #4a90e2;
+            background: #0f1419;
+        }
+        
+        .content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr; /* CLI panel oculto */
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .main-panel {
+            padding: 20px;
+            overflow-y: auto;
+            background: #0f1419;
+        }
+        
+        .terminal-panel {
+            background: #1a1f3a;
+            border-left: 2px solid #2d3561;
+            display: none; /* CLI VIEJO OCULTO - Usar nuevo CLI en http://localhost:8100 */
+            flex-direction: column;
+            padding: 0;
+            position: relative;
+            min-width: 300px;
+            resize: horizontal;
+            overflow: hidden;
+        }
+        
+        .terminal-header {
+            color: #4a90e2;
+            font-weight: bold;
+            padding: 15px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #2d3561;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #252b4a;
+        }
+        
+        .terminal-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .terminal-resize-handle {
+            width: 4px;
+            background: #2d3561;
+            cursor: col-resize;
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 10;
+            transition: background 0.2s;
+        }
+        
+        .terminal-resize-handle:hover {
+            background: #4a90e2;
+        }
+        
+        .terminal-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #000;
+            padding: 10px;
+        }
+
+        .automation-panel {
+            border-top: 1px solid #2d3561;
+            padding: 10px 12px;
+            background: #050816;
+            color: #e5e7eb;
+            font-size: 12px;
+        }
+
+        .automation-panel h4 {
+            margin: 0 0 8px 0;
+            font-size: 12px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .automation-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            border-bottom: 1px dashed rgba(45, 53, 97, 0.5);
+        }
+
+        .automation-item:last-child {
+            border-bottom: none;
+        }
+
+        .automation-meta {
+            flex: 1;
+            color: #e5e7eb;
+        }
+
+        .automation-meta strong {
+            color: #60a5fa;
+        }
+
+        .automation-actions button {
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            margin-left: 4px;
+        }
+
+        .automation-actions .approve {
+            background: #16a34a;
+            color: #fff;
+        }
+
+        .automation-actions .reject {
+            background: #ef4444;
+            color: #fff;
+        }
+        
+        #terminal {
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+        
+        .terminal-scrollbar {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            background: #1a1f3a;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .terminal-panel:hover .terminal-scrollbar {
+            opacity: 1;
+        }
+        
+        .table-container {
+            background: #1a1f3a;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #2d3561;
+            padding: 14px 16px;
+            text-align: left;
+            color: #4a90e2;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #tab-attacks table th:nth-child(1),
+        #tab-attacks table td:nth-child(1) { width: 140px; }
+        #tab-attacks table th:nth-child(3),
+        #tab-attacks table td:nth-child(3) { width: 140px; }
+        #tab-attacks table th:nth-child(4),
+        #tab-attacks table td:nth-child(4) { width: 130px; }
+        #tab-attacks table th:nth-child(5),
+        #tab-attacks table td:nth-child(5) { width: 180px; }
+        
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #2d3561;
+            font-size: 13px;
+            vertical-align: top;
+        }
+
+        td.uri-cell {
+            white-space: normal;
+            word-break: break-all;
+            max-width: 520px;
+        }
+        
+        tr:hover {
+            background: #252b4a;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge-danger {
+            background: #ff4444;
+            color: #fff;
+        }
+        
+        .badge-warning {
+            background: #ffaa00;
+            color: #000;
+        }
+        
+        .badge-success {
+            background: #00ff88;
+            color: #000;
+        }
+        
+        .badge-info {
+            background: #4a90e2;
+            color: #fff;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a90e2;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            background: #1a1f3a;
+            border: 1px solid #2d3561;
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4a90e2;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: #4a90e2;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #357abd;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+        
+        .empty-state::before {
+            content: "📊";
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .pagination button {
+            padding: 8px 15px;
+            background: #2d3561;
+        }
+        
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- build: 2026-02-04T15:20Z -->
+    <!-- build: 2026-02-04T14:30Z -->
+    <div class="header">
+        <div class="logo">Tokio AI</div>
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-label">Ataques Recientes</div>
+                    <div class="stat-value" id="stat-attacks">-</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Episodios</div>
+                    <div class="stat-value" id="stat-episodes">-</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Bloqueos</div>
+                    <div class="stat-value" id="stat-blocks">-</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Tenants</div>
+                    <div class="stat-value" id="stat-tenants">-</div>
+                </div>
+            </div>
+            <div id="health-status" style="display: flex; gap: 10px; align-items: center;">
+                <span id="kafka-status" style="padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: 500;">🔄 Kafka</span>
+                <span id="postgres-status" style="padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: 500;">🔄 PostgreSQL</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="attacks">Ataques Recientes</div>
+        <div class="tab" data-tab="episodes">Episodios</div>
+        <div class="tab" data-tab="blocks">Bloqueos Automáticos</div>
+        <div class="tab" data-tab="tenants">Tenants</div>
+    </div>
+    
+    <div class="content">
+        <div class="main-panel">
+            <!-- Tab: Recent Attacks -->
+            <div class="tab-content active" id="tab-attacks">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 20px;">
+                    <h2 style="color: #4a90e2; margin: 0;">Ataques Recientes</h2>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button onclick="openGlobalSearch()" style="padding: 8px 12px; background: #4a90e2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                            🔍 Búsqueda Global
+                        </button>
+                        <label for="active-tenant-select" style="font-size: 12px; color: #9ca3af;">Tenant</label>
+                        <select id="active-tenant-select" onchange="switchTenant()" style="padding: 6px 10px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155;">
+                            <option value="all">Todos los Tenants</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Barra de filtros avanzada -->
+                <div id="filters-panel" style="background: #1a1f3a; border-radius: 8px; padding: 15px; margin-bottom: 20px; border: 1px solid #2d3561;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <button id="toggle-filters-btn" onclick="toggleFilters()" style="padding: 8px 15px; background: #2d3561; color: #4a90e2; border: 1px solid #4a90e2; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                            Filtros ▼
+                        </button>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span id="filter-count" style="font-size: 12px; color: #9ca3af;">0 filtros activos</span>
+                            <button onclick="clearFilters()" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Limpiar</button>
+                            <button onclick="applyFilters()" style="padding: 6px 12px; background: #4a90e2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Buscar</button>
+                            <button onclick="exportToCSV()" style="padding: 6px 12px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">📥 Exportar CSV</button>
+                        </div>
+                    </div>
+                    <div id="filters-content" style="display: none; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Buscar IP</label>
+                            <input type="text" id="filter-ip" placeholder="192.168.1.1" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">URI / Path contiene</label>
+                            <input type="text" id="filter-uri" placeholder="/admin, wp-login" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Tipo de amenaza</label>
+                            <select id="filter-threat" multiple style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px; min-height: 80px;">
+                                <option value="XSS">XSS</option>
+                                <option value="SQLI">SQLI</option>
+                                <option value="PATH_TRAVERSAL">PATH_TRAVERSAL</option>
+                                <option value="CMD_INJECTION">CMD_INJECTION</option>
+                                <option value="LFI">LFI</option>
+                                <option value="RFI">RFI</option>
+                                <option value="SCANNER">SCANNER</option>
+                                <option value="UNKNOWN">UNKNOWN</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Estado</label>
+                            <select id="filter-blocked" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                                <option value="">Todos</option>
+                                <option value="true">Solo bloqueados</option>
+                                <option value="false">Solo detectados</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Severidad</label>
+                            <select id="filter-severity" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                                <option value="">Todas</option>
+                                <option value="CRITICAL">CRITICAL</option>
+                                <option value="HIGH">HIGH</option>
+                                <option value="MEDIUM">MEDIUM</option>
+                                <option value="LOW">LOW</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Fuente de clasificación</label>
+                            <select id="filter-source" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                                <option value="">Todas</option>
+                                <option value="ml">ML</option>
+                                <option value="llm">LLM</option>
+                                <option value="heuristic">Heurística</option>
+                                <option value="pending">Pendiente</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Método HTTP</label>
+                            <select id="filter-method" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                                <option value="">Todos</option>
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
+                                <option value="PATCH">PATCH</option>
+                                <option value="HEAD">HEAD</option>
+                                <option value="OPTIONS">OPTIONS</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Rango de fecha</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="datetime-local" id="filter-date-from" style="flex: 1; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                                <input type="datetime-local" id="filter-date-to" style="flex: 1; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                            </div>
+                            <div style="display: flex; gap: 5px; margin-top: 5px;">
+                                <button onclick="setDateRange('1h')" style="flex: 1; padding: 4px; font-size: 11px; background: #2d3561; color: #9ca3af; border: none; border-radius: 4px; cursor: pointer;">1h</button>
+                                <button onclick="setDateRange('today')" style="flex: 1; padding: 4px; font-size: 11px; background: #2d3561; color: #9ca3af; border: none; border-radius: 4px; cursor: pointer;">Hoy</button>
+                                <button onclick="setDateRange('7d')" style="flex: 1; padding: 4px; font-size: 11px; background: #2d3561; color: #9ca3af; border: none; border-radius: 4px; cursor: pointer;">7d</button>
+                                <button onclick="setDateRange('30d')" style="flex: 1; padding: 4px; font-size: 11px; background: #2d3561; color: #9ca3af; border: none; border-radius: 4px; cursor: pointer;">30d</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>IP</th>
+                                <th>URI</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attacks-tbody">
+                            <tr><td colspan="5" class="loading">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="attacks-pagination"></div>
+            </div>
+            
+            <!-- Tab: Episodes -->
+            <div class="tab-content" id="tab-episodes">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 20px;">
+                    <h2 style="color: #4a90e2; margin: 0;">Episodios</h2>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label for="episodes-tenant-select" style="font-size: 12px; color: #9ca3af;">Tenant</label>
+                        <select id="episodes-tenant-select" onchange="loadEpisodes(0)" style="padding: 6px 10px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155;">
+                            <option value="all">Todos los Tenants</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Barra de filtros para Episodios -->
+                <div id="filters-panel-episodes" style="background: #1a1f3a; border-radius: 8px; padding: 15px; margin-bottom: 20px; border: 1px solid #2d3561;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <button id="toggle-filters-episodes-btn" onclick="toggleFilters('episodes')" style="padding: 8px 15px; background: #2d3561; color: #4a90e2; border: 1px solid #4a90e2; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                            Filtros ▼
+                        </button>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span id="filter-count-episodes" style="font-size: 12px; color: #9ca3af;">0 filtros activos</span>
+                            <button onclick="clearFilters('episodes')" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Limpiar</button>
+                            <button onclick="applyFilters('episodes')" style="padding: 6px 12px; background: #4a90e2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Buscar</button>
+                        </div>
+                    </div>
+                    <div id="filters-content-episodes" style="display: none; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Buscar IP</label>
+                            <input type="text" id="filter-episodes-ip" placeholder="192.168.1.1" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Estado de decisión</label>
+                            <select id="filter-episodes-decision" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                                <option value="">Todos</option>
+                                <option value="PENDIENTE">PENDIENTE</option>
+                                <option value="BLOQUEADO">BLOQUEADO</option>
+                                <option value="PERMITIDO">PERMITIDO</option>
+                                <option value="AUTO">AUTO</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Risk score mínimo</label>
+                            <input type="range" id="filter-episodes-risk" min="0" max="100" value="0" style="width: 100%;" oninput="document.getElementById('risk-value-episodes').textContent = this.value">
+                            <div style="text-align: center; font-size: 12px; color: #4a90e2; margin-top: 5px;"><span id="risk-value-episodes">0</span></div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Rango de fecha</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="datetime-local" id="filter-episodes-date-from" style="flex: 1; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                                <input type="datetime-local" id="filter-episodes-date-to" style="flex: 1; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                            </div>
+                            <div style="display: flex; gap: 5px; margin-top: 5px;">
+                                <button onclick="setDateRange('1h', 'episodes')" style="flex: 1; padding: 4px; font-size: 11px; background: #2d3561; color: #9ca3af; border: none; border-radius: 4px; cursor: pointer;">1h</button>
+                                <button onclick="setDateRange('today', 'episodes')" style="flex: 1; padding: 4px; font-size: 11px; background: #2d3561; color: #9ca3af; border: none; border-radius: 4px; cursor: pointer;">Hoy</button>
+                                <button onclick="setDateRange('7d', 'episodes')" style="flex: 1; padding: 4px; font-size: 11px; background: #2d3561; color: #9ca3af; border: none; border-radius: 4px; cursor: pointer;">7d</button>
+                                <button onclick="setDateRange('30d', 'episodes')" style="flex: 1; padding: 4px; font-size: 11px; background: #2d3561; color: #9ca3af; border: none; border-radius: 4px; cursor: pointer;">30d</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>IP</th>
+                                <th>Requests</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Detalle</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="episodes-tbody">
+                            <tr><td colspan="7" class="loading">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="episodes-pagination"></div>
+            </div>
+            
+            <!-- Tab: Automatic Blocks -->
+            <div class="tab-content" id="tab-blocks">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 20px;">
+                    <h2 style="color: #4a90e2; margin: 0;">Bloqueos Automáticos</h2>
+                </div>
+                
+                <!-- Barra de filtros para Bloqueos -->
+                <div id="filters-panel-blocks" style="background: #1a1f3a; border-radius: 8px; padding: 15px; margin-bottom: 20px; border: 1px solid #2d3561;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <button id="toggle-filters-blocks-btn" onclick="toggleFilters('blocks')" style="padding: 8px 15px; background: #2d3561; color: #4a90e2; border: 1px solid #4a90e2; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                            Filtros ▼
+                        </button>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span id="filter-count-blocks" style="font-size: 12px; color: #9ca3af;">0 filtros activos</span>
+                            <button onclick="clearFilters('blocks')" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Limpiar</button>
+                            <button onclick="applyFilters('blocks')" style="padding: 6px 12px; background: #4a90e2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Buscar</button>
+                        </div>
+                    </div>
+                    <div id="filters-content-blocks" style="display: none; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Buscar IP</label>
+                            <input type="text" id="filter-blocks-ip" placeholder="192.168.1.1" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Tipo de amenaza</label>
+                            <select id="filter-blocks-threat" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                                <option value="">Todos</option>
+                                <option value="XSS">XSS</option>
+                                <option value="SQLI">SQLI</option>
+                                <option value="PATH_TRAVERSAL">PATH_TRAVERSAL</option>
+                                <option value="CMD_INJECTION">CMD_INJECTION</option>
+                                <option value="LFI">LFI</option>
+                                <option value="RFI">RFI</option>
+                                <option value="SCANNER">SCANNER</option>
+                                <option value="UNKNOWN">UNKNOWN</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Estado</label>
+                            <select id="filter-blocks-status" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                                <option value="">Todos</option>
+                                <option value="active">Solo activos</option>
+                                <option value="expired">Solo expirados</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Actor</label>
+                            <select id="filter-blocks-actor" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                                <option value="">Todos</option>
+                                <option value="automatic">Automático</option>
+                                <option value="manual">Manual</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Rango de fecha de bloqueo</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="datetime-local" id="filter-blocks-date-from" style="flex: 1; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                                <input type="datetime-local" id="filter-blocks-date-to" style="flex: 1; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                            </div>
+                            <div style="display: flex; gap: 5px; margin-top: 5px;">
+                                <button onclick="setDateRange('1h', 'blocks')" style="flex: 1; padding: 4px; font-size: 11px; background: #2d3561; color: #9ca3af; border: none; border-radius: 4px; cursor: pointer;">1h</button>
+                                <button onclick="setDateRange('today', 'blocks')" style="flex: 1; padding: 4px; font-size: 11px; background: #2d3561; color: #9ca3af; border: none; border-radius: 4px; cursor: pointer;">Hoy</button>
+                                <button onclick="setDateRange('7d', 'blocks')" style="flex: 1; padding: 4px; font-size: 11px; background: #2d3561; color: #9ca3af; border: none; border-radius: 4px; cursor: pointer;">7d</button>
+                                <button onclick="setDateRange('30d', 'blocks')" style="flex: 1; padding: 4px; font-size: 11px; background: #2d3561; color: #9ca3af; border: none; border-radius: 4px; cursor: pointer;">30d</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>IP</th>
+                                <th>Tipo</th>
+                                <th>Razón</th>
+                                <th>Bloqueado</th>
+                                <th>Expira</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="blocks-tbody">
+                            <tr><td colspan="6" class="loading">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="blocks-pagination"></div>
+            </div>
+            
+            <!-- Tab: Tenants -->
+            <div class="tab-content" id="tab-tenants">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 20px;">
+                    <h2 style="color: #4a90e2; margin: 0;">Tenants</h2>
+                </div>
+                
+                <!-- Barra de filtros para Tenants -->
+                <div id="filters-panel-tenants" style="background: #1a1f3a; border-radius: 8px; padding: 15px; margin-bottom: 20px; border: 1px solid #2d3561;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <button id="toggle-filters-tenants-btn" onclick="toggleFilters('tenants')" style="padding: 8px 15px; background: #2d3561; color: #4a90e2; border: 1px solid #4a90e2; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                            Filtros ▼
+                        </button>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span id="filter-count-tenants" style="font-size: 12px; color: #9ca3af;">0 filtros activos</span>
+                            <button onclick="clearFilters('tenants')" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Limpiar</button>
+                            <button onclick="applyFilters('tenants')" style="padding: 6px 12px; background: #4a90e2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Buscar</button>
+                        </div>
+                    </div>
+                    <div id="filters-content-tenants" style="display: none; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Buscar por nombre o dominio</label>
+                            <input type="text" id="filter-tenants-search" placeholder="ejemplo.com" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px;">Estado</label>
+                            <select id="filter-tenants-status" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; font-size: 13px;">
+                                <option value="">Todos</option>
+                                <option value="active">Activos</option>
+                                <option value="inactive">Inactivos</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <h3 style="color: #4a90e2; margin-bottom: 15px;">Agregar Nuevo Dominio</h3>
+                    <form id="add-tenant-form">
+                        <div class="form-group">
+                            <label>Nombre del Tenant</label>
+                            <input type="text" id="tenant-name" required placeholder="Ej: Mi Sitio Web">
+                        </div>
+                        <div class="form-group">
+                            <label>Dominio</label>
+                            <input type="text" id="tenant-domain" required placeholder="Ej: ejemplo.com">
+                        </div>
+                        <button type="submit">Agregar Dominio</button>
+                    </form>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Dominio</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Instrucciones DNS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tenants-tbody">
+                            <tr><td colspan="6" class="loading">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="terminal-panel">
+            <div class="terminal-resize-handle" id="terminal-resize-handle"></div>
+            <div class="terminal-header">
+                <span>🌀 Tokio AI CLI</span>
+                <div class="terminal-controls">
+                    <button onclick="toggleTerminalFullscreen()" style="padding: 4px 8px; font-size: 11px; background: #2d3561;">⛶</button>
+                </div>
+            </div>
+            <div class="terminal-container">
+                <div id="terminal"></div>
+                <div class="terminal-scrollbar"></div>
+            </div>
+            <div class="automation-panel">
+                <h4>Automations (pendientes)</h4>
+                <div id="automation-queue">Cargando...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Búsqueda Global -->
+    <div id="global-search-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10000; overflow-y: auto;">
+        <div style="max-width: 1200px; margin: 40px auto; background: #1a1f3a; border-radius: 12px; padding: 30px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h2 style="color: #4a90e2; margin: 0; font-size: 24px;">🔍 Búsqueda Global de IP</h2>
+                <button onclick="closeGlobalSearch()" style="padding: 8px 15px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">✕ Cerrar</button>
+            </div>
+            
+            <div style="margin-bottom: 25px;">
+                <input type="text" id="global-search-ip" placeholder="Ingresa una IP (ej: 192.168.1.1)" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; color: #e2e8f0; border: 2px solid #4a90e2; font-size: 16px; margin-bottom: 10px;">
+                <button onclick="performGlobalSearch()" style="width: 100%; padding: 12px; background: #4a90e2; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600;">🔍 Buscar</button>
+            </div>
+            
+            <div id="global-search-results" style="display: none;">
+                <!-- Resumen de IP -->
+                <div id="global-search-summary" style="background: #0f172a; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #2d3561;">
+                    <h3 style="color: #4a90e2; margin-top: 0; margin-bottom: 15px;">📊 Resumen de IP</h3>
+                    <div id="global-search-summary-content"></div>
+                </div>
+                
+                <!-- Historial de Amenazas -->
+                <div id="global-search-threats" style="background: #0f172a; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #2d3561;">
+                    <h3 style="color: #4a90e2; margin-top: 0; margin-bottom: 15px;">⚠️ Historial de Amenazas</h3>
+                    <div id="global-search-threats-content"></div>
+                </div>
+                
+                <!-- Episodios -->
+                <div id="global-search-episodes" style="background: #0f172a; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #2d3561;">
+                    <h3 style="color: #4a90e2; margin-top: 0; margin-bottom: 15px;">📈 Episodios de Ataque</h3>
+                    <div id="global-search-episodes-content"></div>
+                </div>
+                
+                <!-- Historial de Bloqueos -->
+                <div id="global-search-blocks" style="background: #0f172a; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #2d3561;">
+                    <h3 style="color: #4a90e2; margin-top: 0; margin-bottom: 15px;">🔒 Historial de Bloqueos</h3>
+                    <div id="global-search-blocks-content"></div>
+                </div>
+                
+                <!-- Acciones Rápidas -->
+                <div id="global-search-actions" style="background: #0f172a; border-radius: 8px; padding: 20px; border: 1px solid #2d3561;">
+                    <h3 style="color: #4a90e2; margin-top: 0; margin-bottom: 15px;">⚡ Acciones Rápidas</h3>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="global-search-block-btn" onclick="blockIPFromSearch()" style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">🚫 Bloquear IP</button>
+                        <button id="global-search-unblock-btn" onclick="unblockIPFromSearch()" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">✅ Liberar IP</button>
+                        <button onclick="viewIPDetails()" style="padding: 10px 20px; background: #4a90e2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">📋 Ver Detalles Completos</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="global-search-loading" style="display: none; text-align: center; padding: 40px; color: #9ca3af;">
+                <div style="font-size: 18px; margin-bottom: 10px;">⏳ Buscando...</div>
+            </div>
+            
+            <div id="global-search-error" style="display: none; text-align: center; padding: 40px; color: #ef4444;">
+                <div style="font-size: 18px; margin-bottom: 10px;">❌ Error en la búsqueda</div>
+                <div id="global-search-error-msg"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <script>
+        // Terminal setup
+        const { Terminal } = window;
+        const { FitAddon } = window;
+        const term = new Terminal({
+            theme: {
+                background: '#000000',
+                foreground: '#00ff88',
+                cursor: '#4a90e2',
+                selection: '#4a90e2'
+            },
+            fontSize: 13,
+            fontFamily: 'Consolas, "Courier New", monospace'
+        });
+        const fitAddon = new FitAddon.FitAddon();
+        let scrollAddon = null;
+        if (window.TerminalAddonScrollbar && window.TerminalAddonScrollbar.ScrollbarAddon) {
+            scrollAddon = new window.TerminalAddonScrollbar.ScrollbarAddon();
+        }
+        
+        term.loadAddon(fitAddon);
+        if (scrollAddon) {
+            term.loadAddon(scrollAddon);
+        }
+        term.open(document.getElementById('terminal'));
+        fitAddon.fit();
+        
+        // Ajustar tamaño cuando cambia el tamaño de la ventana
+        window.addEventListener('resize', () => {
+            fitAddon.fit();
+        });
+        
+        // Redimensionar terminal con el handle
+        let isResizing = false;
+        const resizeHandle = document.getElementById('terminal-resize-handle');
+        const terminalPanel = document.querySelector('.terminal-panel');
+        const content = document.querySelector('.content');
+        
+        if (resizeHandle && terminalPanel && content) {
+            resizeHandle.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+                
+                const contentRect = content.getBoundingClientRect();
+                const newWidth = contentRect.right - e.clientX;
+                const minWidth = 300;
+                const maxWidth = contentRect.width - 400;
+                
+                if (newWidth >= minWidth && newWidth <= maxWidth) {
+                    terminalPanel.style.width = newWidth + 'px';
+                    terminalPanel.style.flex = '0 0 ' + newWidth + 'px';
+                    setTimeout(() => fitAddon.fit(), 10);
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                }
+            });
+        }
+        
+        // Función para pantalla completa del terminal
+        let isFullscreen = false;
+        window.toggleTerminalFullscreen = function() {
+            if (!isFullscreen) {
+                terminalPanel.style.position = 'fixed';
+                terminalPanel.style.top = '0';
+                terminalPanel.style.left = '0';
+                terminalPanel.style.right = '0';
+                terminalPanel.style.bottom = '0';
+                terminalPanel.style.width = '100%';
+                terminalPanel.style.zIndex = '9999';
+                terminalPanel.style.borderLeft = 'none';
+                isFullscreen = true;
+            } else {
+                terminalPanel.style.position = '';
+                terminalPanel.style.top = '';
+                terminalPanel.style.left = '';
+                terminalPanel.style.right = '';
+                terminalPanel.style.bottom = '';
+                terminalPanel.style.width = '';
+                terminalPanel.style.zIndex = '';
+                terminalPanel.style.borderLeft = '2px solid #2d3561';
+                isFullscreen = false;
+            }
+            setTimeout(() => fitAddon.fit(), 100);
+        };
+        
+        const COLOR_USER = '\x1b[38;5;45m';
+        const COLOR_AGENT = '\x1b[38;5;214m';
+        const COLOR_META = '\x1b[38;5;244m';
+        const COLOR_RESET = '\x1b[0m';
+
+        let currentMode = 'agent';
+        let currentJobId = null;
+        let currentEventSource = null;
+
+        function writePrompt() {
+            term.write(`${COLOR_USER}TOKIO (${currentMode})> ${COLOR_RESET}`);
+        }
+
+        term.writeln(`${COLOR_AGENT}🦞 TOKIO AI v3.0 ACTIVADO${COLOR_RESET}`);
+        term.writeln(`${COLOR_META}Agente Autónomo - Conectando...${COLOR_RESET}`);
+        term.writeln(`${COLOR_META}Comandos: /help, /tools, /status, exit, clear${COLOR_RESET}`);
+        term.writeln('');
+        writePrompt();
+        
+        let currentLine = '';
+        let commandHistory = [];
+        let historyIndex = -1;
+        let isExecuting = false;
+        let lastOutputHash = '';
+        let pendingFallback = false;
+        let lastCommand = '';
+        let lastProposedToolTitle = null;
+        if (!window.tokioSessionId) {
+            window.tokioSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // WebSocket connection for v3.0 CLI
+        let cliWebSocket = null;
+        let reconnectAttempts = 0;
+        const MAX_RECONNECT_ATTEMPTS = 5;
+
+        function connectCLIWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/api/cli/ws`;
+
+            try {
+                cliWebSocket = new WebSocket(wsUrl);
+
+                cliWebSocket.onopen = () => {
+                    term.writeln(`${COLOR_META}✅ Conectado a TokioAI v3.0${COLOR_RESET}`);
+                    reconnectAttempts = 0;
+                };
+
+                cliWebSocket.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        handleWebSocketMessage(message);
+                    } catch (e) {
+                        console.error('Error parsing WebSocket message:', e);
+                    }
+                };
+
+                cliWebSocket.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    term.writeln(`${COLOR_META}⚠️ Error de conexión${COLOR_RESET}`);
+                };
+
+                cliWebSocket.onclose = () => {
+                    term.writeln(`${COLOR_META}⚠️ Conexión cerrada${COLOR_RESET}`);
+                    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                        reconnectAttempts++;
+                        setTimeout(() => {
+                            term.writeln(`${COLOR_META}Reconectando (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...${COLOR_RESET}`);
+                            connectCLIWebSocket();
+                        }, 2000 * reconnectAttempts);
+                    }
+                };
+            } catch (e) {
+                console.error('Error creating WebSocket:', e);
+                term.writeln(`${COLOR_META}❌ No se pudo conectar a TokioAI v3.0${COLOR_RESET}`);
+                term.writeln(`${COLOR_META}Usando modo SSE legacy...${COLOR_RESET}`);
+            }
+        }
+
+        function handleWebSocketMessage(message) {
+            const { type, content } = message;
+
+            switch (type) {
+                case 'output':
+                    term.write(content);
+                    break;
+                case 'error':
+                    term.writeln(`\r\n${COLOR_AGENT}${content}${COLOR_RESET}`);
+                    break;
+                case 'status':
+                    term.writeln(`\r\n${COLOR_META}${content}${COLOR_RESET}`);
+                    break;
+                case 'clear':
+                    term.clear();
+                    break;
+                case 'done':
+                    // Command finished, show prompt
+                    isExecuting = false;
+                    term.writeln('');
+                    writePrompt();
+                    break;
+                default:
+                    console.log('Unknown message type:', type);
+            }
+        }
+
+        function sendCommandWebSocket(cmd) {
+            if (cliWebSocket && cliWebSocket.readyState === WebSocket.OPEN) {
+                cliWebSocket.send(JSON.stringify({
+                    type: 'command',
+                    content: cmd
+                }));
+                isExecuting = true;
+            } else {
+                // Usar endpoint HTTP directo (sin WebSocket/SSE)
+                sendCommandDirect(cmd);
+            }
+        }
+
+        async function sendCommandDirect(cmd) {
+            isExecuting = true;
+            term.writeln(`${COLOR_META}⏳ Procesando...${COLOR_RESET}`);
+            
+            try {
+                const response = await fetch('/api/cli/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: cmd })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Mostrar output
+                    if (data.output) {
+                        if (typeof data.output === 'string') {
+                            term.writeln(data.output);
+                        } else {
+                            term.writeln(JSON.stringify(data.output, null, 2));
+                        }
+                    }
+                    term.writeln(`${COLOR_AGENT}✅ Completado${COLOR_RESET}`);
+                } else {
+                    term.writeln(`${COLOR_AGENT}❌ Error: ${data.error || 'Error desconocido'}${COLOR_RESET}`);
+                }
+            } catch (error) {
+                term.writeln(`${COLOR_AGENT}❌ Error de conexión: ${error.message}${COLOR_RESET}`);
+            } finally {
+                isExecuting = false;
+                term.writeln('');
+                writePrompt();
+            }
+        }
+
+        // Connect WebSocket on load
+        connectCLIWebSocket();
+
+        function hashOutput(text) {
+            if (!text) return '';
+            const trimmed = text.trim();
+            return `${trimmed.length}:${trimmed.slice(0, 120)}`;
+        }
+
+        function updateProposedToolTitle(text) {
+            if (!text) return;
+            const actionMatch = text.match(/"action"\s*:\s*"propose_tool_tokio"/);
+            if (!actionMatch) return;
+            const titleMatch = text.match(/"title"\s*:\s*"([^"]+)"/);
+            if (titleMatch && titleMatch[1]) {
+                lastProposedToolTitle = titleMatch[1];
+            }
+        }
+        
+        term.attachCustomKeyEventHandler((e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    navigator.clipboard.readText().then(text => {
+                        if (text) {
+                            currentLine += text;
+                            term.write(text);
+                        }
+                    }).catch(() => {});
+                    return false;
+                }
+            }
+            if (e.ctrlKey && e.key.toLowerCase() === 'c') {
+                if (isExecuting) {
+                    cancelCommand();
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        term.onData(data => {
+            if (data === '\r') {
+                term.write('\r\n');
+                if (currentLine.trim()) {
+                    handleCommand(currentLine);
+                    commandHistory.push(currentLine);
+                    historyIndex = commandHistory.length;
+                } else {
+                    writePrompt();
+                }
+                currentLine = '';
+            } else if (data === '\x7f') {
+                if (currentLine.length > 0) {
+                    currentLine = currentLine.slice(0, -1);
+                    term.write('\b \b');
+                }
+            } else if (data === '\x03') {
+                if (isExecuting) {
+                    cancelCommand();
+                } else {
+                    term.write('^C\r\n');
+                    writePrompt();
+                }
+                currentLine = '';
+            } else if (data === '\x1b[A') {
+                // Up arrow
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    currentLine = commandHistory[historyIndex];
+                    term.write('\r\x1b[K');
+                    term.write(`${COLOR_USER}TOKIO (${currentMode})> ${COLOR_RESET}` + currentLine);
+                }
+            } else if (data === '\x1b[B') {
+                // Down arrow
+                if (historyIndex < commandHistory.length - 1) {
+                    historyIndex++;
+                    currentLine = commandHistory[historyIndex];
+                    term.write('\r\x1b[K');
+                    term.write(`${COLOR_USER}TOKIO (${currentMode})> ${COLOR_RESET}` + currentLine);
+                }
+            } else {
+                currentLine += data;
+                term.write(data);
+            }
+        });
+
+        async function loadAutomationQueue() {
+            const container = document.getElementById('automation-queue');
+            if (!container) return;
+            try {
+                const res = await fetch('/api/automation/proposals?status=pending');
+                const data = await res.json();
+                const items = data.items || [];
+                if (items.length === 0) {
+                    container.textContent = 'Sin pendientes.';
+                    return;
+                }
+                container.innerHTML = items.map(item => `
+                    <div class="automation-item">
+                        <div class="automation-meta">
+                            <div><strong>${item.type}</strong> · ${item.title}</div>
+                            <div style="color:#9ca3af;">${item.description || ''}</div>
+                        </div>
+                        <div class="automation-actions">
+                            <button class="approve" onclick="approveAutomation('${item.id}')">Run</button>
+                            <button class="reject" onclick="rejectAutomation('${item.id}')">Reject</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                container.textContent = 'Error cargando queue.';
+            }
+        }
+
+        window.approveAutomation = async function(id) {
+            try {
+                await fetch(`/api/automation/proposals/${id}/approve?approver=dashboard&run_now=true`, { method: 'POST' });
+                await loadAutomationQueue();
+            } catch (e) {
+                term.writeln('Error aprobando acción: ' + e.message);
+            }
+        };
+
+        window.rejectAutomation = async function(id) {
+            try {
+                await fetch(`/api/automation/proposals/${id}/reject?approver=dashboard&reason=Rejected`, { method: 'POST' });
+                await loadAutomationQueue();
+            } catch (e) {
+                term.writeln('Error rechazando acción: ' + e.message);
+            }
+        };
+        
+        function handleCommand(cmd) {
+            cmd = cmd.trim();
+            if (!cmd) {
+                writePrompt();
+                return;
+            }
+            if (lastProposedToolTitle && /(\besa\b|\bla\b)\s+tool|\btool\s+anterior\b|\btool\s+que\s+creaste\b/i.test(cmd)) {
+                cmd = `Usa la tool "${lastProposedToolTitle}". Solicitud: ${cmd}`;
+            }
+            if (cmd === '/paste') {
+                if (!navigator.clipboard || !navigator.clipboard.readText) {
+                    term.writeln('Clipboard no disponible.');
+                    writePrompt();
+                    return;
+                }
+                navigator.clipboard.readText().then(text => {
+                    if (!text) {
+                        term.writeln('Clipboard vacío.');
+                        writePrompt();
+                        return;
+                    }
+                    handleCommand(text);
+                }).catch(() => {
+                    term.writeln('No se pudo leer el clipboard.');
+                    writePrompt();
+                });
+                return;
+            }
+            if (isExecuting) {
+                term.writeln('⏳ Hay un comando en curso. Cancelando y comenzando el nuevo...');
+                cancelCommand();
+            }
+            isExecuting = true;
+            lastCommand = cmd;
+            pendingFallback = false;
+            term.writeln('⏳ Procesando...');
+            
+            // Comandos especiales de v3.0
+            if (cmd === '/help' || cmd === 'help') {
+                term.writeln('🦞 TOKIO AI v3.0 - Agente Autónomo');
+                term.writeln('');
+                term.writeln('Comandos en lenguaje natural (ejemplos):');
+                term.writeln('  • "analiza los últimos ataques"');
+                term.writeln('  • "bloquea la IP 192.168.1.100"');
+                term.writeln('  • "crea una tool para enviar alertas por WhatsApp"');
+                term.writeln('  • "muéstrame estadísticas del WAF"');
+                term.writeln('  • "revisa la salud del sistema"');
+                term.writeln('');
+                term.writeln('Comandos especiales:');
+                term.writeln('  /help - Muestra esta ayuda');
+                term.writeln('  /tools - Lista tools disponibles');
+                term.writeln('  /status - Estado del sistema');
+                term.writeln('  clear - Limpiar pantalla');
+                term.writeln('  exit - Salir');
+                writePrompt();
+                return;
+            }
+            
+            if (cmd === 'exit' || cmd === 'quit') {
+                term.writeln('Saliendo...');
+                if (cliWebSocket && cliWebSocket.readyState === WebSocket.OPEN) {
+                    cliWebSocket.close();
+                }
+                return;
+            }
+            
+            if (cmd === 'clear') {
+                term.clear();
+                writePrompt();
+                return;
+            }
+            
+            if (cmd.startsWith('/mode ')) {
+                const mode = cmd.split(' ')[1];
+                if (['agent', 'plan', 'ask'].includes(mode)) {
+                    currentMode = mode;
+                }
+                term.writeln(`Modo cambiado a: ${currentMode}`);
+                writePrompt();
+                return;
+            }
+            
+            if (cmd === '/clear-history') {
+                term.writeln('Historial de conversación limpiado');
+                writePrompt();
+                return;
+            }
+
+            // Use WebSocket v3.0 first, fallback to SSE if not available
+            sendCommandWebSocket(cmd);
+        }
+
+        function sendCommandSse(cmd) {
+            if (!window.EventSource) {
+                term.writeln(`${COLOR_META}SSE no disponible, usando fallback HTTP...${COLOR_RESET}`);
+                sendCommandHttp(cmd);
+                return;
+            }
+
+            if (currentEventSource) {
+                currentEventSource.close();
+            }
+
+            fetch('/api/cli/jobs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    command: cmd,
+                    mode: currentMode,
+                    session_id: window.tokioSessionId
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success || !data.job_id) {
+                    throw new Error(data.error || 'No se pudo crear el job');
+                }
+                currentJobId = data.job_id;
+                term.writeln(`${COLOR_META}✅ Job creado: ${currentJobId}${COLOR_RESET}`);
+
+                const es = new EventSource(`/api/cli/jobs/${currentJobId}/events`);
+                currentEventSource = es;
+                let outputStarted = false;
+
+                es.onmessage = (event) => {
+                    try {
+                        const payload = JSON.parse(event.data);
+                        if (payload.type === 'status') {
+                            const detail = payload.detail ? ` · ${payload.detail}` : '';
+                            term.writeln(`${COLOR_META}⏳ ${payload.stage}${detail}${COLOR_RESET}`);
+                            return;
+                        }
+                        if (payload.type === 'output') {
+                            if (!outputStarted) {
+                                outputStarted = true;
+                                term.writeln(`${COLOR_AGENT}🧠 Respuesta:${COLOR_RESET}`);
+                            }
+                            updateProposedToolTitle(payload.data || '');
+                            term.write(payload.data || '');
+                            return;
+                        }
+                        if (payload.type === 'error') {
+                            term.writeln(`${COLOR_AGENT}Error:${COLOR_RESET} ${payload.message || 'Error'}`);
+                            return;
+                        }
+                        if (payload.type === 'final') {
+                            if (payload.output) {
+                                if (!outputStarted) {
+                                    outputStarted = true;
+                                    term.writeln(`${COLOR_AGENT}🧠 Respuesta:${COLOR_RESET}`);
+                                }
+                                updateProposedToolTitle(payload.output);
+                                term.writeln(payload.output);
+                            }
+                            if (payload.error) {
+                                term.writeln(`${COLOR_AGENT}Error:${COLOR_RESET} ${payload.error}`);
+                            }
+                            if (payload.success) {
+                                term.writeln(`${COLOR_META}✅ Completado${COLOR_RESET}`);
+                            }
+                            isExecuting = false;
+                            es.close();
+                            currentEventSource = null;
+                            currentJobId = null;
+                            writePrompt();
+                        }
+                    } catch (e) {
+                        term.writeln(`${COLOR_AGENT}Error:${COLOR_RESET} ${e.message}`);
+                    }
+                };
+
+                es.onerror = () => {
+                    if (pendingFallback) {
+                        return;
+                    }
+                    pendingFallback = true;
+                    term.writeln(`${COLOR_META}⚠️ SSE desconectado. Reintentando por HTTP...${COLOR_RESET}`);
+                    es.close();
+                    currentEventSource = null;
+                    sendCommandHttp(cmd);
+                };
+            })
+            .catch(err => {
+                term.writeln(`${COLOR_AGENT}Error:${COLOR_RESET} ${err.message}`);
+                isExecuting = false;
+                writePrompt();
+            });
+        }
+
+        function sendCommandHttp(cmd) {
+            fetch('/api/cli/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    command: cmd,
+                    mode: currentMode,
+                    session_id: window.tokioSessionId
+                })
+            })
+            .then(async (r) => {
+                const text = await r.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    return { success: false, error: text || 'Service Unavailable' };
+                }
+            })
+            .then(data => {
+                if (data.success) {
+                    const output = data.output || data.message || 'OK';
+                    const outputHash = hashOutput(output);
+                    if (outputHash !== lastOutputHash) {
+                        lastOutputHash = outputHash;
+                                term.writeln(`${COLOR_AGENT}🧠 Respuesta:${COLOR_RESET}`);
+                        updateProposedToolTitle(output);
+                        term.writeln(output);
+                    }
+                } else {
+                            term.writeln(`${COLOR_AGENT}Error:${COLOR_RESET} ` + (data.error || 'Unknown error'));
+                }
+                isExecuting = false;
+                writePrompt();
+            })
+            .catch(err => {
+                        term.writeln(`${COLOR_AGENT}Error:${COLOR_RESET} ` + err.message);
+                isExecuting = false;
+                writePrompt();
+            });
+        }
+
+        function cancelCommand() {
+            term.writeln('^C Cancelando...');
+            if (currentJobId) {
+                fetch(`/api/cli/jobs/${currentJobId}/cancel`, { method: 'POST' }).catch(() => {});
+                if (currentEventSource) {
+                    currentEventSource.close();
+                    currentEventSource = null;
+                }
+                currentJobId = null;
+            } else if (window.mcpWebSocket && window.mcpWebSocket.readyState === WebSocket.OPEN) {
+                window.mcpWebSocket.send(JSON.stringify({
+                    type: 'cancel',
+                    session_id: window.tokioSessionId
+                }));
+            } else {
+                fetch('/api/cli/cancel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: window.tokioSessionId })
+                }).catch(() => {});
+            }
+            isExecuting = false;
+            writePrompt();
+        }
+
+        // Cargar queue de automatizaciones
+        loadAutomationQueue();
+        setInterval(loadAutomationQueue, 15000);
+        
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+                loadTabData(tab.dataset.tab);
+            });
+        });
+        
+        // Load data functions
+        async function fetchJsonWithRetry(url, options = {}) {
+            const timeout = options.timeout ?? 25000;
+            const retries = options.retries ?? 2;
+            const backoffMs = options.backoffMs ?? 800;
+            
+            for (let attempt = 0; attempt <= retries; attempt++) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeout);
+                try {
+                    const res = await fetch(url, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (!res.ok) {
+                        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                    }
+                    return await res.json();
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    const isLast = attempt >= retries;
+                    if (isLast) throw err;
+                    await new Promise(resolve => setTimeout(resolve, backoffMs * (2 ** attempt)));
+                }
+            }
+        }
+        async function loadTabData(tab) {
+            switch(tab) {
+                case 'attacks':
+                    loadAttacks();
+                    break;
+                case 'episodes':
+                    loadEpisodes();
+                    break;
+                case 'blocks':
+                    loadBlocks();
+                    break;
+                case 'tenants':
+                    loadTenants();
+                    break;
+            }
+        }
+        
+        // Estado de filtros
+        let currentFilters = {};
+        let attacksOffset = 0;
+        
+        // Cargar filtros desde URL al iniciar
+        function loadFiltersFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('ip')) currentFilters.ip = params.get('ip');
+            if (params.get('threat_type')) currentFilters.threat_type = params.get('threat_type');
+            if (params.get('severity')) currentFilters.severity = params.get('severity');
+            if (params.get('blocked')) currentFilters.blocked = params.get('blocked') === 'true';
+            if (params.get('classification_source')) currentFilters.classification_source = params.get('classification_source');
+            if (params.get('uri_contains')) currentFilters.uri_contains = params.get('uri_contains');
+            if (params.get('method')) currentFilters.method = params.get('method');
+            if (params.get('date_from')) currentFilters.date_from = params.get('date_from');
+            if (params.get('date_to')) currentFilters.date_to = params.get('date_to');
+            applyFiltersToUI();
+        }
+        
+        // Aplicar filtros a la UI
+        function applyFiltersToUI() {
+            if (currentFilters.ip) document.getElementById('filter-ip').value = currentFilters.ip;
+            if (currentFilters.uri_contains) document.getElementById('filter-uri').value = currentFilters.uri_contains;
+            if (currentFilters.threat_type) {
+                const threatSelect = document.getElementById('filter-threat');
+                Array.from(threatSelect.options).forEach(opt => {
+                    if (opt.value === currentFilters.threat_type) opt.selected = true;
+                });
+            }
+            if (currentFilters.blocked !== undefined) document.getElementById('filter-blocked').value = String(currentFilters.blocked);
+            if (currentFilters.severity) document.getElementById('filter-severity').value = currentFilters.severity;
+            if (currentFilters.classification_source) document.getElementById('filter-source').value = currentFilters.classification_source;
+            if (currentFilters.method) document.getElementById('filter-method').value = currentFilters.method;
+            if (currentFilters.date_from) document.getElementById('filter-date-from').value = currentFilters.date_from;
+            if (currentFilters.date_to) document.getElementById('filter-date-to').value = currentFilters.date_to;
+            updateFilterCount();
+        }
+        
+        // Actualizar URL con filtros
+        function updateURLWithFilters() {
+            const params = new URLSearchParams();
+            Object.entries(currentFilters).forEach(([key, value]) => {
+                if (value !== null && value !== undefined && value !== '') {
+                    params.set(key, String(value));
+                }
+            });
+            const newURL = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+            window.history.replaceState({}, '', newURL);
+        }
+        
+        // Contar filtros activos
+        function updateFilterCount() {
+            const count = Object.keys(currentFilters).filter(k => currentFilters[k] !== null && currentFilters[k] !== undefined && currentFilters[k] !== '').length;
+            document.getElementById('filter-count').textContent = `${count} filtros activos`;
+        }
+        
+        // Toggle filtros
+        function toggleFilters() {
+            const content = document.getElementById('filters-content');
+            const btn = document.getElementById('toggle-filters-btn');
+            if (content.style.display === 'none') {
+                content.style.display = 'grid';
+                btn.textContent = 'Filtros ▲';
+            } else {
+                content.style.display = 'none';
+                btn.textContent = 'Filtros ▼';
+            }
+        }
+        
+        // Limpiar filtros
+        function clearFilters() {
+            currentFilters = {};
+            document.getElementById('filter-ip').value = '';
+            document.getElementById('filter-uri').value = '';
+            document.getElementById('filter-threat').selectedIndex = -1;
+            document.getElementById('filter-blocked').value = '';
+            document.getElementById('filter-severity').value = '';
+            document.getElementById('filter-source').value = '';
+            document.getElementById('filter-method').value = '';
+            document.getElementById('filter-date-from').value = '';
+            document.getElementById('filter-date-to').value = '';
+            updateFilterCount();
+            updateURLWithFilters();
+            loadAttacks(0);
+        }
+        
+        // Aplicar filtros
+        function applyFilters() {
+            currentFilters = {};
+            const ip = document.getElementById('filter-ip').value.trim();
+            if (ip) currentFilters.ip = ip;
+            const uri = document.getElementById('filter-uri').value.trim();
+            if (uri) currentFilters.uri_contains = uri;
+            const threat = Array.from(document.getElementById('filter-threat').selectedOptions).map(o => o.value);
+            if (threat.length > 0) currentFilters.threat_type = threat[0]; // Solo el primero por ahora
+            const blocked = document.getElementById('filter-blocked').value;
+            if (blocked) currentFilters.blocked = blocked === 'true';
+            const severity = document.getElementById('filter-severity').value;
+            if (severity) currentFilters.severity = severity;
+            const source = document.getElementById('filter-source').value;
+            if (source) currentFilters.classification_source = source;
+            const method = document.getElementById('filter-method').value;
+            if (method) currentFilters.method = method;
+            const dateFrom = document.getElementById('filter-date-from').value;
+            if (dateFrom) currentFilters.date_from = dateFrom;
+            const dateTo = document.getElementById('filter-date-to').value;
+            if (dateTo) currentFilters.date_to = dateTo;
+            updateFilterCount();
+            updateURLWithFilters();
+            loadAttacks(0);
+        }
+        
+        // Shortcuts de fecha
+        function setDateRange(range) {
+            const now = new Date();
+            const from = document.getElementById('filter-date-from');
+            const to = document.getElementById('filter-date-to');
+            let fromDate, toDate;
+            switch(range) {
+                case '1h':
+                    fromDate = new Date(now - 3600000);
+                    toDate = now;
+                    break;
+                case 'today':
+                    fromDate = new Date(now.setHours(0,0,0,0));
+                    toDate = new Date();
+                    break;
+                case '7d':
+                    fromDate = new Date(now - 7*24*3600000);
+                    toDate = new Date();
+                    break;
+                case '30d':
+                    fromDate = new Date(now - 30*24*3600000);
+                    toDate = new Date();
+                    break;
+            }
+            from.value = fromDate.toISOString().slice(0, 16);
+            to.value = toDate.toISOString().slice(0, 16);
+        }
+        
+        // Exportar CSV
+        async function exportToCSV() {
+            try {
+                const params = new URLSearchParams();
+                params.set('limit', '1000');
+                params.set('format', 'csv');
+                Object.entries(currentFilters).forEach(([key, value]) => {
+                    if (value !== null && value !== undefined && value !== '') {
+                        params.set(key, String(value));
+                    }
+                });
+                if (activeTenantId !== 'all') params.set('tenant_id', activeTenantId);
+                
+                // Usar el endpoint de export que genera el CSV en el servidor
+                const url = `/api/attacks/recent/export?${params.toString()}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                // Descargar directamente
+                const blob = await response.blob();
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `tokio-ai-attacks-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (err) {
+                alert('Error exportando CSV: ' + err.message);
+            }
+        }
+        
+        async function loadAttacks(offset = 0) {
+            attacksOffset = offset;
+            const tbody = document.getElementById('attacks-tbody');
+            if (!tbody) return;
+            
+            try {
+                const params = new URLSearchParams();
+                params.set('limit', '50');
+                params.set('offset', String(offset));
+                if (activeTenantId !== 'all') params.set('tenant_id', activeTenantId);
+                
+                // Agregar filtros
+                Object.entries(currentFilters).forEach(([key, value]) => {
+                    if (value !== null && value !== undefined && value !== '') {
+                        params.set(key, String(value));
+                    }
+                });
+                
+                const url = `/api/attacks/recent?${params.toString()}`;
+                const data = await fetchJsonWithRetry(url, { timeout: 25000, retries: 2 });
+                
+                if (!data.items || data.items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay ataques recientes</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = data.items.map(item => `
+                    <tr>
+                        <td><strong>${item.ip || '-'}</strong></td>
+                        <td class="uri-cell" title="${(item.uri || '-').replace(/"/g, '&quot;')}">${item.uri || '-'}</td>
+                        <td><span class="badge badge-danger">${item.threat_type || 'UNKNOWN'}</span></td>
+                        <td><span class="badge ${item.blocked ? 'badge-danger' : 'badge-warning'}">${item.blocked ? 'BLOQUEADO' : 'DETECTADO'}</span></td>
+                        <td>${formatLogDate(item)}</td>
+                    </tr>
+                `).join('');
+                
+                const total = (data.total && data.total > 0)
+                    ? data.total
+                    : (offset + data.items.length + (data.items.length === 50 ? 1 : 0));
+                updatePagination('attacks-pagination', offset, total, 50, loadAttacks);
+            } catch (err) {
+                console.error('Error cargando ataques:', err);
+                const errorMsg = err.name === 'AbortError' 
+                    ? 'Timeout: La petición tardó demasiado. Intenta recargar la página.'
+                    : `Error: ${err.message}`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #ff4444;">${errorMsg}</td></tr>`;
+            }
+        }
+        
+        const episodesCache = new Map();
+
+        function formatEpisodeFlags(flags) {
+            if (!flags || typeof flags !== 'object') return '-';
+            const active = Object.entries(flags).filter(([, v]) => v).map(([k]) => k);
+            return active.length ? active.join(', ') : '-';
+        }
+
+        function formatEpisodeSampleUris(sampleUris) {
+            if (!Array.isArray(sampleUris) || sampleUris.length === 0) return '-';
+            return sampleUris.slice(0, 3).join(' | ');
+        }
+
+        function toggleEpisodeDetails(episodeId) {
+            const row = document.querySelector(`tr[data-episode-row="${episodeId}"]`);
+            if (!row) return;
+            const existing = document.querySelector(`tr[data-episode-detail="${episodeId}"]`);
+            if (existing) {
+                existing.remove();
+                return;
+            }
+            const ep = episodesCache.get(String(episodeId));
+            if (!ep) return;
+            const detailsHtml = `
+                <div style="line-height: 1.6;">
+                    <div><strong>Ventana:</strong> ${ep.episode_start || '-'} → ${ep.episode_end || '-'}</div>
+                    <div><strong>Requests:</strong> ${ep.total_requests || 0} | <strong>URIs únicas:</strong> ${ep.unique_uris || 0} | <strong>Rate:</strong> ${ep.request_rate || 0} req/s</div>
+                    <div><strong>Riesgo:</strong> ${ep.risk_score || 0} | <strong>Decisión:</strong> ${ep.decision || 'PENDIENTE'}</div>
+                    <div><strong>Flags activos:</strong> ${formatEpisodeFlags(ep.presence_flags)}</div>
+                    <div><strong>Sample URIs:</strong> ${formatEpisodeSampleUris(ep.sample_uris)}</div>
+                    <div><strong>LLM:</strong> ${ep.llm_label || '-'} (${ep.llm_confidence || '-'})</div>
+                </div>
+            `;
+            const detailRow = document.createElement('tr');
+            detailRow.setAttribute('data-episode-detail', episodeId);
+            detailRow.innerHTML = `<td colspan="7" style="background:#0b1020; border-top:1px solid #2d3561; padding:12px 16px;">${detailsHtml}</td>`;
+            row.insertAdjacentElement('afterend', detailRow);
+        }
+
+        async function loadEpisodes(offset = 0) {
+            const tbody = document.getElementById('episodes-tbody');
+            if (!tbody) return;
+            
+            try {
+                const data = await fetchJsonWithRetry(`/api/episodes/pending?limit=50&offset=${offset}`, { timeout: 25000, retries: 2 });
+                
+                if (!data.episodes || data.episodes.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay episodios</td></tr>';
+                    return;
+                }
+                
+                episodesCache.clear();
+                data.episodes.forEach(ep => {
+                    episodesCache.set(String(ep.episode_id), ep);
+                });
+                
+                tbody.innerHTML = data.episodes.map(ep => `
+                    <tr data-episode-row="${ep.episode_id}">
+                        <td>${ep.episode_id}</td>
+                        <td><strong>${ep.src_ip}</strong></td>
+                        <td>${ep.total_requests || 0}</td>
+                        <td><span class="badge badge-warning">PENDIENTE</span></td>
+                        <td>${formatLogDate(ep)}</td>
+                        <td>
+                            <button onclick="toggleEpisodeDetails('${ep.episode_id}')" style="padding: 5px 10px; font-size: 12px;">Detalle</button>
+                        </td>
+                        <td>
+                            <button onclick="labelEpisode('${ep.episode_id}', 'PATH_TRAVERSAL')" style="padding: 5px 10px; font-size: 12px;">Bloquear</button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                const total = (data.total && data.total > 0)
+                    ? data.total
+                    : (offset + data.episodes.length + (data.episodes.length === 50 ? 1 : 0));
+                updatePagination('episodes-pagination', offset, total, 50, loadEpisodes);
+            } catch (err) {
+                console.error('Error cargando episodios:', err);
+                const errorMsg = err.name === 'AbortError' 
+                    ? 'Timeout: La petición tardó demasiado.'
+                    : `Error: ${err.message}`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #ff4444;">${errorMsg}</td></tr>`;
+            }
+        }
+        
+        async function loadBlocks(offset = 0) {
+            const tbody = document.getElementById('blocks-tbody');
+            if (!tbody) return;
+            
+            try {
+                const data = await fetchJsonWithRetry(`/api/episodes/blocked-ips?limit=50&offset=${offset}`, { timeout: 25000, retries: 2 });
+                
+                if (!data.items || data.items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No hay bloqueos</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = data.items.map(item => `
+                    <tr>
+                        <td><strong>${item.ip}</strong></td>
+                        <td><span class="badge badge-danger">${item.threat_type || 'MANUAL'}</span></td>
+                        <td>${item.reason || '-'}</td>
+                        <td>${formatLogDate({ created_at: item.blocked_at })}</td>
+                        <td>${item.expires_at ? formatLogDate({ created_at: item.expires_at }) : 'Nunca'}</td>
+                        <td><span class="badge ${item.active ? 'badge-danger' : 'badge-success'}">${item.active ? 'ACTIVO' : 'EXPIRADO'}</span></td>
+                    </tr>
+                `).join('');
+                
+                const total = (data.total && data.total > 0)
+                    ? data.total
+                    : (offset + data.items.length + (data.items.length === 50 ? 1 : 0));
+                updatePagination('blocks-pagination', offset, total, 50, loadBlocks);
+            } catch (err) {
+                console.error('Error cargando bloqueos:', err);
+                const errorMsg = err.name === 'AbortError' 
+                    ? 'Timeout: La petición tardó demasiado.'
+                    : `Error: ${err.message}`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #ff4444;">${errorMsg}</td></tr>`;
+            }
+        }
+        
+        async function loadTenants() {
+            const tbody = document.getElementById('tenants-tbody');
+            if (!tbody) return;
+            
+            try {
+                const data = await fetchJsonWithRetry('/api/tenants', { timeout: 25000, retries: 2 });
+                
+                if (!data.tenants || data.tenants.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No hay tenants. Agrega uno nuevo.</td></tr>';
+                    updateTenantSelector();
+                    return;
+                }
+                
+                tbody.innerHTML = data.tenants.map(tenant => `
+                    <tr>
+                        <td>${tenant.id}</td>
+                        <td>${tenant.name}</td>
+                        <td><strong>${tenant.domain || 'N/A'}</strong></td>
+                        <td><span class="badge badge-success">${tenant.status || 'ACTIVE'}</span></td>
+                        <td>${new Date(tenant.created_at).toLocaleString()}</td>
+                        <td>
+                            <button onclick="showDNSInstructions('${tenant.domain || ''}', '34.70.91.26')" style="padding: 5px 10px; font-size: 12px; margin-right: 5px; background: #4a90e2; color: white; border: none; border-radius: 3px; cursor: pointer;">Ver Instrucciones</button>
+                            <button onclick="deleteTenant(${tenant.id}, '${tenant.domain || ''}')" style="padding: 5px 10px; font-size: 12px; background: #ff4444; color: white; border: none; border-radius: 3px; cursor: pointer;">Eliminar</button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                // Actualizar selector
+                updateTenantSelector();
+            } catch (err) {
+                console.error('Error cargando tenants:', err);
+                const errorMsg = err.name === 'AbortError' 
+                    ? 'Timeout: La petición tardó demasiado.'
+                    : `Error: ${err.message}`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #ff4444;">${errorMsg}</td></tr>`;
+            }
+        }
+        
+        function updatePagination(id, offset, total, limit, loadFn) {
+            const pagination = document.getElementById(id);
+            if (!pagination) return;
+            
+            const safeTotal = total || 0;
+            const pages = Math.max(1, Math.ceil(safeTotal / limit));
+            const currentPage = Math.floor(offset / limit) + 1;
+            const canPrev = offset > 0;
+            const canNext = offset + limit < safeTotal;
+            
+            pagination.innerHTML = '';
+            
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = 'Anterior';
+            prevBtn.disabled = !canPrev;
+            prevBtn.addEventListener('click', () => loadFn(Math.max(0, offset - limit)));
+            
+            const pageInfo = document.createElement('span');
+            pageInfo.style.padding = '8px 15px';
+            pageInfo.textContent = `Página ${currentPage} de ${pages}`;
+            
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Siguiente';
+            nextBtn.disabled = !canNext;
+            nextBtn.addEventListener('click', () => loadFn(offset + limit));
+            
+            pagination.appendChild(prevBtn);
+            pagination.appendChild(pageInfo);
+            pagination.appendChild(nextBtn);
+        }
+        
+        function formatLogDate(item) {
+            const raw = item.created_at || item.timestamp;
+            if (!raw) return '-';
+            const dt = new Date(raw);
+            if (Number.isNaN(dt.getTime())) return raw;
+            return dt.toLocaleString();
+        }
+        
+        // Add tenant form
+        document.getElementById('add-tenant-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('tenant-name').value;
+            const domain = document.getElementById('tenant-domain').value;
+            
+            try {
+                const res = await fetch('/api/tenants', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, domain })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    // Mostrar instrucciones mejoradas
+                    showDNSInstructions(domain, data.vm_ip || '34.70.91.26');
+                    document.getElementById('add-tenant-form').reset();
+                    loadTenants();
+                    loadStats();
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+        
+        // Actualizar selector de tenants cuando se cargan
+        async function updateTenantSelector() {
+            try {
+                const res = await fetch('/api/tenants');
+                const data = await res.json();
+                const select = document.getElementById('active-tenant-select');
+                if (!select) return;
+                
+                // Limpiar opciones excepto "Todos"
+                select.innerHTML = '<option value="all">Todos los Tenants</option>';
+                
+                if (data.tenants && data.tenants.length > 0) {
+                    data.tenants.forEach(tenant => {
+                        const option = document.createElement('option');
+                        option.value = tenant.id;
+                        option.textContent = `${tenant.name} (${tenant.domain || 'N/A'})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (err) {
+                console.error('Error actualizando selector de tenants:', err);
+            }
+        }
+        
+        let activeTenantId = 'all';
+        
+        async function switchTenant() {
+            activeTenantId = document.getElementById('active-tenant-select').value;
+            // Recargar datos con el tenant seleccionado
+            loadAttacks();
+            loadEpisodes();
+            loadBlocks();
+        }
+        
+        function showDNSInstructions(domain, vmIp) {
+            const instructions = `📋 INSTRUCCIONES PARA CONFIGURAR ${domain}
+
+1️⃣ Ve a tu panel de administración DNS (donde compraste el dominio)
+
+2️⃣ Crea un REGISTRO A:
+   • Tipo: A
+   • Nombre: @ (o deja en blanco)
+   • Valor/IP: ${vmIp || '34.70.91.26'}
+   • TTL: 3600 (o el valor por defecto)
+
+   O crea un REGISTRO CNAME:
+   • Tipo: CNAME
+   • Nombre: @ (o deja en blanco)
+   • Valor: ${vmIp || 'proxy.tokio-ai.com'}
+
+3️⃣ Espera 5-15 minutos para que el DNS se propague
+
+4️⃣ El WAF se aplicará automáticamente una vez que el DNS esté activo
+
+✅ Una vez configurado, tu sitio estará protegido automáticamente`;
+            alert(instructions);
+        }
+        
+        async function deleteTenant(tenantId, domain) {
+            if (!confirm(`¿Estás seguro de que quieres eliminar el tenant "${domain}"?\n\nEsto eliminará:\n- El tenant de la base de datos\n- La configuración de Nginx para este dominio\n\nEsta acción no se puede deshacer.`)) {
+                return;
+            }
+            
+            try {
+                const res = await fetch(`/api/tenants/${tenantId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await res.json();
+                
+                if (data.success || res.ok) {
+                    alert(`✅ Tenant "${domain}" eliminado exitosamente`);
+                    loadTenants();
+                    loadStats();
+                    // Resetear selector si el tenant eliminado estaba seleccionado
+                    if (activeTenantId == tenantId) {
+                        activeTenantId = 'all';
+                        document.getElementById('active-tenant-select').value = 'all';
+                        loadAttacks();
+                        loadEpisodes();
+                        loadBlocks();
+                    }
+                } else {
+                    alert('Error: ' + (data.error || data.detail || 'Error desconocido'));
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+        
+        async function checkHealth() {
+            try {
+                const res = await fetch('/api/health');
+                const data = await res.json();
+                
+                // Actualizar estado de Kafka
+                const kafkaStatus = document.getElementById('kafka-status');
+                if (data.services?.kafka?.status === 'healthy') {
+                    kafkaStatus.textContent = '✅ Kafka';
+                    kafkaStatus.style.background = '#00ff88';
+                    kafkaStatus.style.color = '#000';
+                } else {
+                    kafkaStatus.textContent = '❌ Kafka';
+                    kafkaStatus.style.background = '#ff4444';
+                    kafkaStatus.style.color = '#fff';
+                }
+                
+                // Actualizar estado de PostgreSQL
+                const postgresStatus = document.getElementById('postgres-status');
+                if (data.services?.postgresql?.status === 'healthy') {
+                    postgresStatus.textContent = '✅ PostgreSQL';
+                    postgresStatus.style.background = '#00ff88';
+                    postgresStatus.style.color = '#000';
+                } else {
+                    postgresStatus.textContent = '❌ PostgreSQL';
+                    postgresStatus.style.background = '#ff4444';
+                    postgresStatus.style.color = '#fff';
+                }
+            } catch (err) {
+                console.error('Error checking health:', err);
+                const kafkaStatus = document.getElementById('kafka-status');
+                const postgresStatus = document.getElementById('postgres-status');
+                kafkaStatus.textContent = '❌ Kafka';
+                kafkaStatus.style.background = '#ff4444';
+                kafkaStatus.style.color = '#fff';
+                postgresStatus.textContent = '❌ PostgreSQL';
+                postgresStatus.style.background = '#ff4444';
+                postgresStatus.style.color = '#fff';
+            }
+        }
+        
+        async function labelEpisode(episodeId, label) {
+            try {
+                const res = await fetch('/api/episodes/label', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: episodeId,
+                        analyst_label: label,
+                        analyst_id: 'dashboard',
+                        confidence: 1.0
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('Episodio etiquetado y IP bloqueada');
+                    loadEpisodes();
+                    loadBlocks();
+                    loadStats();
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+        
+        async function loadStats() {
+            try {
+                // Agregar timeouts a cada fetch
+                const fetchWithTimeout = (url, timeout = 20000) =>
+                    fetchJsonWithRetry(url, { timeout, retries: 2, backoffMs: 800 });
+                
+                const [attacks, episodes, blocks, tenants] = await Promise.all([
+                    fetchWithTimeout('/api/attacks/recent?limit=1', 20000).catch(() => ({ items: [] })),
+                    fetchWithTimeout('/api/episodes/pending?limit=1', 20000).catch(() => ({ episodes: [] })),
+                    fetchWithTimeout('/api/episodes/blocked-ips?limit=1', 20000).catch(() => ({ items: [] })),
+                    fetchWithTimeout('/api/tenants', 20000).catch(() => ({ tenants: [] }))
+                ]);
+                
+                document.getElementById('stat-attacks').textContent = attacks.total || 0;
+                document.getElementById('stat-episodes').textContent = episodes.total || 0;
+                document.getElementById('stat-blocks').textContent = blocks.total || 0;
+                document.getElementById('stat-tenants').textContent = tenants.tenants?.length || 0;
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+        
+        // Inicializar dashboard cuando el DOM esté listo
+        function initializeDashboard() {
+            console.log('Inicializando dashboard...');
+            
+            // Timeout de seguridad: ocultar "Cargando..." después de 8 segundos
+            const loadingTimeout = setTimeout(() => {
+                document.querySelectorAll('.loading').forEach(el => {
+                    if (el.textContent && el.textContent.includes('Cargando...')) {
+                        el.innerHTML = '<td colspan="10" style="text-align: center; padding: 20px; color: #ffaa00;">⚠️ Los datos están tardando en cargar. Verifica la conexión o recarga la página.</td>';
+                    }
+                });
+            }, 8000);
+            
+            // Cargar datos iniciales con manejo de errores
+            Promise.allSettled([
+                loadStats().catch(err => {
+                    console.error('Error cargando stats:', err);
+                    const statAttacks = document.getElementById('stat-attacks');
+                    const statEpisodes = document.getElementById('stat-episodes');
+                    const statBlocks = document.getElementById('stat-blocks');
+                    const statTenants = document.getElementById('stat-tenants');
+                    if (statAttacks) statAttacks.textContent = '?';
+                    if (statEpisodes) statEpisodes.textContent = '?';
+                    if (statBlocks) statBlocks.textContent = '?';
+                    if (statTenants) statTenants.textContent = '?';
+                }),
+                loadAttacks().catch(err => {
+                    console.error('Error cargando ataques:', err);
+                    const tbody = document.getElementById('attacks-tbody');
+                    if (tbody) {
+                        const errorMsg = err.name === 'AbortError' 
+                            ? 'Timeout: La petición tardó demasiado. Intenta recargar la página.'
+                            : `Error: ${err.message}`;
+                        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #ff4444;">${errorMsg}</td></tr>`;
+                    }
+                }),
+                updateTenantSelector().catch(err => {
+                    console.error('Error cargando selector de tenants:', err);
+                }),
+                checkHealth().catch(err => {
+                    console.error('Error verificando salud:', err);
+                })
+            ]).then(() => {
+                clearTimeout(loadingTimeout);
+                console.log('Dashboard inicializado');
+                // Ocultar indicadores de carga que aún estén visibles
+                document.querySelectorAll('.loading').forEach(el => {
+                    if (el.textContent && el.textContent.includes('Cargando...')) {
+                        el.innerHTML = '<td colspan="10" style="text-align: center; padding: 20px; color: #9ca3af;">No hay datos disponibles</td>';
+                    }
+                });
+            });
+        }
+        
+        // Esperar a que el DOM esté completamente cargado
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeDashboard);
+        } else {
+            // DOM ya está listo
+            initializeDashboard();
+        }
+        
+        // Auto-refresh every 10 seconds para logs en tiempo real
+        setInterval(() => {
+            loadStats().catch(err => console.error('Error en refresh stats:', err));
+            checkHealth().catch(err => console.error('Error en refresh health:', err));
+            const activeTab = document.querySelector('.tab.active');
+            if (activeTab) {
+                loadTabData(activeTab.dataset.tab);
+            }
+        }, 10000);
+        
+        // Resize terminal on window resize
+        window.addEventListener('resize', () => {
+            fitAddon.fit();
+        });
+        
+        // Funciones para búsqueda global
+        let currentSearchIP = null;
+        
+        function openGlobalSearch() {
+            document.getElementById('global-search-modal').style.display = 'block';
+            document.getElementById('global-search-ip').focus();
+        }
+        
+        function closeGlobalSearch() {
+            document.getElementById('global-search-modal').style.display = 'none';
+            document.getElementById('global-search-results').style.display = 'none';
+            document.getElementById('global-search-loading').style.display = 'none';
+            document.getElementById('global-search-error').style.display = 'none';
+            currentSearchIP = null;
+        }
+        
+        async function performGlobalSearch() {
+            const ip = document.getElementById('global-search-ip').value.trim();
+            if (!ip) {
+                alert('Por favor ingresa una IP');
+                return;
+            }
+            
+            currentSearchIP = ip;
+            document.getElementById('global-search-results').style.display = 'none';
+            document.getElementById('global-search-loading').style.display = 'block';
+            document.getElementById('global-search-error').style.display = 'none';
+            
+            try {
+                // Buscar en endpoint /api/search
+                const res = await fetch(`/api/search?ip=${encodeURIComponent(ip)}`);
+                const data = await res.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Error en la búsqueda');
+                }
+                
+                document.getElementById('global-search-loading').style.display = 'none';
+                document.getElementById('global-search-results').style.display = 'block';
+                
+                // Resumen
+                const summaryContent = document.getElementById('global-search-summary-content');
+                summaryContent.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div><strong>Total de logs:</strong> ${data.summary?.total_logs || 0}</div>
+                        <div><strong>IPs únicas:</strong> ${data.summary?.unique_ips || 1}</div>
+                        <div><strong>Bloqueos activos:</strong> ${data.summary?.active_blocks || 0}</div>
+                        <div><strong>Primera detección:</strong> ${data.summary?.first_seen || '-'}</div>
+                        <div><strong>Última actividad:</strong> ${data.summary?.last_seen || '-'}</div>
+                    </div>
+                `;
+                
+                // Amenazas
+                const threatsContent = document.getElementById('global-search-threats-content');
+                if (data.threats && data.threats.length > 0) {
+                    threatsContent.innerHTML = `
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #2d3561;">
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">Tipo</th>
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">URI</th>
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">Fecha</th>
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.threats.slice(0, 10).map(t => `
+                                    <tr>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561;"><span class="badge badge-danger">${t.threat_type || 'UNKNOWN'}</span></td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561; word-break: break-all;">${(t.uri || '-').substring(0, 60)}</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561;">${formatLogDate(t)}</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561;"><span class="badge ${t.blocked ? 'badge-danger' : 'badge-warning'}">${t.blocked ? 'BLOQUEADO' : 'DETECTADO'}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        ${data.threats.length > 10 ? `<div style="margin-top: 10px; color: #9ca3af; font-size: 12px;">Mostrando 10 de ${data.threats.length} amenazas</div>` : ''}
+                    `;
+                } else {
+                    threatsContent.innerHTML = '<div style="color: #9ca3af; text-align: center; padding: 20px;">No se encontraron amenazas</div>';
+                }
+                
+                // Episodios
+                const episodesContent = document.getElementById('global-search-episodes-content');
+                if (data.episodes && data.episodes.length > 0) {
+                    episodesContent.innerHTML = `
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #2d3561;">
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">ID</th>
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">Requests</th>
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">Decisión</th>
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">Risk Score</th>
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.episodes.slice(0, 10).map(e => `
+                                    <tr>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561;">${e.episode_id || '-'}</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561;">${e.total_requests || 0}</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561;"><span class="badge ${e.decision === 'BLOQUEADO' ? 'badge-danger' : e.decision === 'PERMITIDO' ? 'badge-success' : 'badge-warning'}">${e.decision || 'PENDIENTE'}</span></td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561;">${e.risk_score || '-'}</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561;">${formatLogDate(e)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        ${data.episodes.length > 10 ? `<div style="margin-top: 10px; color: #9ca3af; font-size: 12px;">Mostrando 10 de ${data.episodes.length} episodios</div>` : ''}
+                    `;
+                } else {
+                    episodesContent.innerHTML = '<div style="color: #9ca3af; text-align: center; padding: 20px;">No se encontraron episodios</div>';
+                }
+                
+                // Bloqueos
+                const blocksContent = document.getElementById('global-search-blocks-content');
+                if (data.blocks && data.blocks.length > 0) {
+                    blocksContent.innerHTML = `
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #2d3561;">
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">IP</th>
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">Tipo</th>
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">Bloqueado</th>
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">Expira</th>
+                                    <th style="padding: 10px; text-align: left; color: #4a90e2;">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.blocks.slice(0, 10).map(b => `
+                                    <tr>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561;"><strong>${b.ip || '-'}</strong></td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561;"><span class="badge badge-danger">${b.threat_type || 'MANUAL'}</span></td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561;">${formatLogDate({ created_at: b.blocked_at })}</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561;">${b.expires_at ? formatLogDate({ created_at: b.expires_at }) : 'Nunca'}</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #2d3561;"><span class="badge ${b.active ? 'badge-danger' : 'badge-success'}">${b.active ? 'ACTIVO' : 'EXPIRADO'}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        ${data.blocks.length > 10 ? `<div style="margin-top: 10px; color: #9ca3af; font-size: 12px;">Mostrando 10 de ${data.blocks.length} bloqueos</div>` : ''}
+                    `;
+                } else {
+                    blocksContent.innerHTML = '<div style="color: #9ca3af; text-align: center; padding: 20px;">No se encontraron bloqueos</div>';
+                }
+                
+                // Actualizar botones de acciones
+                const hasActiveBlock = data.blocks && data.blocks.some(b => b.active);
+                document.getElementById('global-search-block-btn').style.display = hasActiveBlock ? 'none' : 'inline-block';
+                document.getElementById('global-search-unblock-btn').style.display = hasActiveBlock ? 'inline-block' : 'none';
+                
+            } catch (err) {
+                document.getElementById('global-search-loading').style.display = 'none';
+                document.getElementById('global-search-error').style.display = 'block';
+                document.getElementById('global-search-error-msg').textContent = err.message;
+            }
+        }
+        
+        function blockIPFromSearch() {
+            if (!currentSearchIP) return;
+            if (confirm(`¿Bloquear IP ${currentSearchIP}?`)) {
+                fetch('/api/blocked', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip: currentSearchIP, duration_hours: 24, reason: 'Bloqueo manual desde búsqueda global' })
+                }).then(() => {
+                    alert('IP bloqueada');
+                    performGlobalSearch();
+                }).catch(err => alert('Error: ' + err.message));
+            }
+        }
+        
+        function unblockIPFromSearch() {
+            if (!currentSearchIP) return;
+            if (confirm(`¿Liberar IP ${currentSearchIP}?`)) {
+                fetch(`/api/blocked/${encodeURIComponent(currentSearchIP)}`, {
+                    method: 'DELETE'
+                }).then(() => {
+                    alert('IP liberada');
+                    performGlobalSearch();
+                }).catch(err => alert('Error: ' + err.message));
+            }
+        }
+        
+        function viewIPDetails() {
+            if (!currentSearchIP) return;
+            // Filtrar por IP en el tab de ataques
+            document.getElementById('filter-ip').value = currentSearchIP;
+            applyFilters();
+            closeGlobalSearch();
+            // Cambiar al tab de ataques
+            document.querySelector('.tab[data-tab="attacks"]').click();
+        }
+        
+        // Permitir buscar con Enter
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('global-search-ip');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        performGlobalSearch();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

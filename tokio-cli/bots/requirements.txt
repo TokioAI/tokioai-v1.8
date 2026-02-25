@@ -1,0 +1,14 @@
+# Telegram Bot
+python-telegram-bot==20.7
+httpx~=0.25.2
+
+# WhatsApp Bot (Twilio)
+flask==3.0.0
+twilio==8.11.0
+requests==2.31.0
+
+# Audio processing (usa GEMINI_API_KEY que ya está configurada)
+google-generativeai>=0.3.0
+
+# Common
+python-dotenv==1.0.0

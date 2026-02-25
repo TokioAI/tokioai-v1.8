@@ -1,0 +1,17 @@
+# Logging en formato JSON para fácil procesamiento (incluye host)
+log_format modsec_log escape=json
+    '{'
+    '"time_local":"$time_local",'
+    '"host":"$host",'
+    '"remote_addr":"$remote_addr",'
+    '"request_method":"$request_method",'
+    '"request_uri":"$request_uri",'
+    '"status":"$status",'
+    '"body_bytes_sent":"$body_bytes_sent",'
+    '"http_referer":"$http_referer",'
+    '"http_user_agent":"$http_user_agent",'
+    '"modsec_status":"$modsec_status",'
+    '"modsec_action":"$modsec_action",'
+    '"modsec_id":"$modsec_id",'
+    '"modsec_msg":"$modsec_msg"'
+    '}';

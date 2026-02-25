@@ -1,0 +1,108 @@
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+credentials/
+**/service.yaml
+**/*secret*
+**/*password*
+**/*token*
+**/*credential*
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.pnp
+.pnp.js
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Backups & Archives
+backup*/
+backups/
+*.tar.gz
+*.zip
+*.tar
+
+# Cloud Build & Deployment
+.gcloudignore
+cloudbuild-*.yaml.bak
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Test & Coverage
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+
+# Database dumps
+*.sql.gz
+*.dump
+
+# Local configs that shouldn't be committed
+config/local.*
+*.local.yaml
+*.local.yml
+
+# Session files
+*.session
+whatsapp-session/
+
+# Compiled files
+*.pyc
+*.pyo
+*.pyd
+*.class

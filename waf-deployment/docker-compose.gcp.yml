@@ -1,0 +1,53 @@
+services:
+  modsecurity-nginx:
+    image: owasp/modsecurity-crs:nginx-alpine
+    container_name: tokio-ai-modsecurity
+    ports:
+      - "YOUR_IP_ADDRESS:80:8080"
+      - "YOUR_IP_ADDRESS:443:8443"
+    volumes:
+      - ./modsecurity/modsec-logs:/var/log/nginx:rw
+      - ./modsecurity/rules:/etc/modsecurity/rules:rw
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./modsecurity/config/gcp-nginx-https.conf:/etc/nginx/templates/conf.d/default.conf.template:ro
+      - ./modsecurity/html:/usr/share/nginx/html:ro
+    environment:
+      - NGINX_HOST=YOUR_IP_ADDRESS
+      - NGINX_PORT=8080
+      - NGINX_HTTPS_PORT=8443
+      - SSL_PORT=8443
+      - SSL_CERT_FILE=/etc/nginx/ssl/fullchain.pem
+      - SSL_CERT_KEY_FILE=/etc/nginx/ssl/privkey.pem
+      - BACKEND=http://YOUR_IP_ADDRESS:80
+      - BACKEND_HOST=airesiliencehub.space
+      - BACKEND_PORT=80
+      - BACKEND_SSL=off
+      - NGINX_ALWAYS_TLS_REDIRECT=on
+      - SERVER_NAME=airesiliencehub.space
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  log-processor:
+    network_mode: host
+    image: python:3.11-slim
+    container_name: tokio-ai-log-processor
+    working_dir: /app
+    volumes:
+      - ./modsecurity/modsec-logs:/logs:ro
+      - ./modsecurity/log-processor.py:/app/log-processor.py:ro
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+      - KAFKA_TOPIC_WAF_LOGS=waf-logs
+      - MODSEC_LOG_PATH=/logs/access.log
+      - MODSEC_ERROR_LOG_PATH=/logs/error.log
+      - LOG_BATCH_SIZE=10
+      - LOG_BATCH_TIMEOUT=0.5
+    command: sh -c "pip install -q kafka-python watchdog && python3 /app/log-processor.py"
+    depends_on:
+      - modsecurity-nginx
+    restart: on-failure

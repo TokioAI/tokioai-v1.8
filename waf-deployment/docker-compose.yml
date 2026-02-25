@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  modsecurity-nginx:
+    image: owasp/modsecurity-crs:nginx-alpine
+    container_name: tokio-ai-modsecurity
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:8080"
+      - "${NGINX_HTTPS_PORT:-443}:8443"
+    volumes:
+      - ./modsecurity/modsec-logs:/var/log/nginx:rw
+      - ./modsecurity/rules:/etc/modsecurity/rules:rw
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./modsecurity/config/gcp-nginx.conf:/etc/nginx/templates/conf.d/default.conf.template:ro
+      - ./modsecurity/config/00-logging.conf.template:/etc/nginx/templates/conf.d/00-logging.conf.template:ro
+      - ./modsecurity/html:/usr/share/nginx/html:ro
+    environment:
+      - NGINX_HOST=YOUR_IP_ADDRESS
+      - NGINX_PORT=8080
+      - NGINX_HTTPS_PORT=8443
+      - SSL_PORT=8443
+      - SSL_CERT_FILE=/etc/nginx/ssl/fullchain.pem
+      - SSL_CERT_KEY_FILE=/etc/nginx/ssl/privkey.pem
+      - BACKEND=${BACKEND_URL:-http://YOUR_IP_ADDRESS:80}
+      - BACKEND_HOST=${BACKEND_HOST:-airesiliencehub.space}
+      - BACKEND_PORT=${BACKEND_PORT:-80}
+      - BACKEND_SSL=${BACKEND_SSL:-off}
+      - NGINX_ALWAYS_TLS_REDIRECT=${NGINX_ALWAYS_TLS_REDIRECT:-on}
+      - SERVER_NAME=${SERVER_NAME:-airesiliencehub.space}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - waf-network
+
+  log-processor:
+    build:
+      context: ./modsecurity
+      dockerfile: Dockerfile.log-processor
+    container_name: tokio-ai-log-processor
+    volumes:
+      - ./modsecurity/modsec-logs:/logs:ro
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      - KAFKA_TOPIC_WAF_LOGS=${KAFKA_TOPIC_WAF_LOGS:-waf-logs}
+      - MODSEC_LOG_PATH=/logs/access.log
+      - MODSEC_ERROR_LOG_PATH=/logs/error.log
+      - LOG_BATCH_SIZE=${LOG_BATCH_SIZE:-10}
+      - LOG_BATCH_TIMEOUT=${LOG_BATCH_TIMEOUT:-0.5}
+    healthcheck:
+      test: ["CMD", "ps", "aux", "|", "grep", "log-processor.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - modsecurity-nginx
+      - kafka
+    restart: on-failure
+    networks:
+      - waf-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: tokio-ai-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    restart: unless-stopped
+    networks:
+      - waf-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: tokio-ai-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_EXTERNAL://${VM_IP:-YOUR_IP_ADDRESS}:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    restart: unless-stopped
+    networks:
+      - waf-network
+
+networks:
+  waf-network:
+    driver: bridge
