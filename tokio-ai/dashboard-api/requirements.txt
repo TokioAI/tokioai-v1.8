@@ -3,14 +3,14 @@ uvicorn[standard]==0.32.0
 psycopg2-binary==2.9.9
 kafka-python==2.0.2
 pydantic==2.9.0
-python-multipart==0.0.12
+python-multipart==0.0.22
 bcrypt==4.1.1
 watchdog==3.0.0
 google-generativeai==0.3.0
 mcp>=1.0.0
 websockets>=12.0
 anyio>=4.6
-aiohttp==3.12.15
-requests==2.31.0
+aiohttp==3.13.3
+requests==2.32.4
 structlog>=24.1.0
 docker>=7.0.0
