@@ -10,7 +10,7 @@ if (!globalThis.fetch) {
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const API_KEY = 'AIzaSyCzCfB04QQaaupnpoaXn9C8au-fqEoI9dQ';
+const API_KEY = process.env.GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY_HERE';
 
 // Modelos a probar en orden
 const modelos = [

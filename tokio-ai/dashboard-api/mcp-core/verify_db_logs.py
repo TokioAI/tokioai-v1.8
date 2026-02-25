@@ -14,7 +14,7 @@ def get_db_connection():
         port=os.getenv('POSTGRES_PORT', '5432'),
         database=os.getenv('POSTGRES_DB', 'soar_db'),
         user=os.getenv('POSTGRES_USER', 'soar_user'),
-        password=os.getenv('POSTGRES_PASSWORD', 'soar_password')
+        password=os.getenv('POSTGRES_PASSWORD', 'YOUR_POSTGRES_PASSWORD')
     )
 
 def verify_db_logs():
