@@ -29,7 +29,7 @@ echo ""
 # Verificar que estamos en el directorio correcto
 if [ ! -f "docker-compose.yml" ]; then
     echo -e "${RED}❌ Error: Ejecutar desde el directorio waf-deployment${NC}"
-    echo "   cd /home/osboxes/SOC-AI-LAB/waf-deployment"
+    echo "   cd /opt/tokioai/waf/waf-deployment"
     exit 1
 fi
 

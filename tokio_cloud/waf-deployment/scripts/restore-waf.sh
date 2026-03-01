@@ -7,7 +7,7 @@ if [ -z "$1" ]; then
     echo "Uso: $0 <archivo-backup.tar.gz>"
     echo ""
     echo "Backups disponibles:"
-    ls -lh /home/osboxes/SOC-AI-LAB/waf-backups/*.tar.gz 2>/dev/null | tail -5
+    ls -lh /opt/tokioai/backups/*.tar.gz 2>/dev/null | tail -5
     exit 1
 fi
 
@@ -22,7 +22,7 @@ echo "📦 Restaurando desde: $BACKUP_FILE"
 echo ""
 
 # Extraer backup
-cd /home/osboxes/SOC-AI-LAB
+cd "${DEPLOY_DIR:-/opt/tokioai/waf}"
 tar -xzf "$BACKUP_FILE"
 
 echo "✅ Backup restaurado"

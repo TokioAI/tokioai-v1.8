@@ -343,7 +343,7 @@ def main():
     log_file_path = os.getenv('MODSEC_LOG_PATH', '/logs/access.log')
     
     # Dominio por defecto para este log processor
-    default_domain = os.getenv('DEFAULT_DOMAIN', 'airesiliencehub.space')
+    default_domain = os.getenv('DEFAULT_DOMAIN', 'your-domain.com')
     
     logger.info(f"Iniciando procesador de logs ModSecurity (Multi-Tenant)...")
     logger.info(f"Kafka: {kafka_bootstrap}")

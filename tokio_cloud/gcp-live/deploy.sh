@@ -6,8 +6,8 @@
 set -euo pipefail
 
 # ─── Config ───────────────────────────────────────────────────────────────────
-GCP_HOST="35.225.133.230"
-GCP_USER="osboxes"
+GCP_HOST="${GCP_HOST:-YOUR_GCP_VM_IP}"
+GCP_USER="${GCP_USER:-YOUR_SSH_USER}"
 GCP_DIR="/opt/tokio-waf"
 SSH_KEY="${SSH_KEY:-$HOME/.ssh/google_compute_engine}"
 SSH_CMD="ssh -i $SSH_KEY -o StrictHostKeyChecking=no -o ConnectTimeout=10"

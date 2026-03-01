@@ -3,7 +3,7 @@
 
 set -e
 
-BACKUP_DIR="${BACKUP_DIR:-/home/osboxes/SOC-AI-LAB/waf-backups}"
+BACKUP_DIR="${BACKUP_DIR:-/opt/tokioai/backups}"
 DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="waf-backup-${DATE}.tar.gz"
 
@@ -12,7 +12,7 @@ echo ""
 
 mkdir -p "$BACKUP_DIR"
 
-cd /home/osboxes/SOC-AI-LAB
+cd "${DEPLOY_DIR:-/opt/tokioai/waf}"
 
 # Backup de configuración (sin logs)
 tar -czf "$BACKUP_DIR/$BACKUP_FILE" \

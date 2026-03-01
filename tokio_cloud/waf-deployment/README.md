@@ -84,12 +84,12 @@ NGINX_HTTPS_PORT=443
 
 # Backend (sitio web detrás del WAF)
 BACKEND_URL=http://YOUR_IP_ADDRESS:80
-BACKEND_HOST=airesiliencehub.space
+BACKEND_HOST=your-domain.com
 BACKEND_PORT=80
 BACKEND_SSL=off
 
 # Configuración del servidor
-SERVER_NAME=airesiliencehub.space
+SERVER_NAME=your-domain.com
 NGINX_ALWAYS_TLS_REDIRECT=on
 
 # Kafka (para envío de logs)
@@ -183,11 +183,11 @@ gcloud compute ssh $VM_NAME --zone=$VM_ZONE --tunnel-through-iap \
 
 # Obtener certificado
 gcloud compute ssh $VM_NAME --zone=$VM_ZONE --tunnel-through-iap \
-    --command="sudo certbot certonly --standalone -d airesiliencehub.space"
+    --command="sudo certbot certonly --standalone -d your-domain.com"
 
 # Copiar certificados al directorio ssl
 gcloud compute ssh $VM_NAME --zone=$VM_ZONE --tunnel-through-iap \
-    --command="sudo cp /etc/letsencrypt/live/airesiliencehub.space/fullchain.pem /opt/tokio-ai-waf/ssl/ && sudo cp /etc/letsencrypt/live/airesiliencehub.space/privkey.pem /opt/tokio-ai-waf/ssl/ && sudo chown \$(whoami):\$(whoami) /opt/tokio-ai-waf/ssl/*"
+    --command="sudo cp /etc/letsencrypt/live/your-domain.com/fullchain.pem /opt/tokio-ai-waf/ssl/ && sudo cp /etc/letsencrypt/live/your-domain.com/privkey.pem /opt/tokio-ai-waf/ssl/ && sudo chown \$(whoami):\$(whoami) /opt/tokio-ai-waf/ssl/*"
 ```
 
 ### Opción 2: Certificados Existentes

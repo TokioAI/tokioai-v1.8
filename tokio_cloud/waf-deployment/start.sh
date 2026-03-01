@@ -9,7 +9,7 @@ echo ""
 # Verificar que estamos en el directorio correcto
 if [ ! -f "docker-compose.yml" ]; then
     echo "❌ Error: Ejecutar desde el directorio waf-deployment"
-    echo "   cd /home/osboxes/SOC-AI-LAB/waf-deployment"
+    echo "   cd /opt/tokioai/waf/waf-deployment"
     exit 1
 fi
 
@@ -61,7 +61,7 @@ case $opcion in
         echo ""
         echo "📦 Restaurando desde backup..."
         echo "Backups disponibles:"
-        ls -lh /home/osboxes/SOC-AI-LAB/waf-backups/*.tar.gz 2>/dev/null | tail -5
+        ls -lh /opt/tokioai/backups/*.tar.gz 2>/dev/null | tail -5
         echo ""
         read -p "Ingresa la ruta del backup: " backup_file
         ./scripts/restore-waf.sh "$backup_file"
