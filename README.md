@@ -51,6 +51,24 @@ Last 20 lines:
 
 ---
 
+## 🧬 Philosophy
+
+Most "AI tools" are chatbots with a nice UI. You type, it talks back. That's it.
+
+**TokioAI was built with a different belief: AI should execute, not just respond.**
+
+The world doesn't need another chatbot. It needs an agent that can restart your containers at 3 AM, query your database when something breaks, block an attacker's IP in real-time, and SSH into your server to fix what's wrong — all while you sleep.
+
+TokioAI is built by a security architect who got tired of switching between 15 terminals, 8 dashboards, and 3 cloud consoles to do what one intelligent agent could do in seconds. Every tool in this framework exists because it solved a real problem in production, not because it looked good in a demo.
+
+**Principles:**
+- **Execute, don't chat** — Every tool does something real. No decorative features.
+- **Security first** — Three layers of protection because an agent with bash access is a weapon. Treat it like one.
+- **Own your infra** — Self-hosted, no SaaS dependencies, your data stays on your machines.
+- **Simple > clever** — Python, Docker, PostgreSQL. No Kubernetes, no microservices, no buzzwords.
+
+---
+
 ## ✨ Features
 
 <table>
@@ -647,10 +665,20 @@ GPL v3 — See [LICENSE](LICENSE) for details.
 
 ---
 
+## 👤 Author
+
+Built by **[MrMoz](https://github.com/TokioAI)** — Security architect, hacker, builder.
+
+TokioAI started as a personal tool to automate SOC operations and infrastructure management. It grew into a full framework because every time something broke at 3 AM, the answer was always the same: "the agent should handle this."
+
+If you find it useful, drop a star. If you break it, open an issue. If you improve it, send a PR.
+
+---
+
 <div align="center">
 
-**Built with ❤️ by [TokioAI](https://github.com/TokioAI)**
+**TokioAI — Self-hosted AI that executes.**
 
-*Self-hosted AI that actually does things.*
+*Not a chatbot. An agent.*
 
 </div>
