@@ -1,77 +1,181 @@
-# TokioAI
-
-**AI Agent Framework** — A modular, self-hosted AI agent that executes real actions on your infrastructure via CLI, API, and Telegram.
-
-TokioAI connects an LLM (Claude, GPT, Gemini) to your servers, databases, Docker containers, IoT devices, DNS, and cloud infrastructure through a secure tool-calling architecture. It's not a chatbot — it's an autonomous agent that gets things done.
+<div align="center">
 
 ```
-You: "restart the nginx container and show me the last 20 lines of its logs"
-TokioAI: [executes docker restart nginx, docker logs --tail 20 nginx, returns results]
+████████╗ ██████╗ ██╗  ██╗██╗ ██████╗      █████╗ ██╗
+╚══██╔══╝██╔═══██╗██║ ██╔╝██║██╔═══██╗    ██╔══██╗██║
+   ██║   ██║   ██║█████╔╝ ██║██║   ██║    ███████║██║
+   ██║   ██║   ██║██╔═██╗ ██║██║   ██║    ██╔══██║██║
+   ██║   ╚██████╔╝██║  ██╗██║╚██████╔╝    ██║  ██║██║
+   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝ ╚═════╝     ╚═╝  ╚═╝╚═╝
 ```
 
-## Features
+### Autonomous AI Agent Framework
 
-### Multi-Provider LLM Support
-- **Anthropic Claude** (direct API or Vertex AI) — recommended
+**Connect an LLM to your entire infrastructure. Not a chatbot — an agent that gets things done.**
+
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue?style=for-the-badge)](LICENSE)
+[![Telegram Bot](https://img.shields.io/badge/Telegram-Bot-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](#telegram-bot)
+
+<br>
+
+*TokioAI connects Claude, GPT, or Gemini to your servers, databases, Docker containers, IoT devices, DNS, and cloud infrastructure through a secure tool-calling architecture.*
+
+[Getting Started](#-quick-start) · [Features](#-features) · [Architecture](#-architecture) · [WAF Dashboard](#-waf-dashboard) · [Custom Tools](#-adding-custom-tools)
+
+</div>
+
+---
+
+## Demo
+
+```
+🌀 tokio> restart the nginx container and show me the last 20 lines of its logs
+
+  🔧 docker restart nginx...
+  🔧 docker logs --tail 20 nginx...
+
+✅ Container nginx restarted successfully.
+
+Last 20 lines:
+2026/03/01 14:23:01 [notice] 1#1: signal process started
+2026/03/01 14:23:01 [notice] 1#1: using the "epoll" event method
+2026/03/01 14:23:01 [notice] 1#1: nginx/1.25.4
+2026/03/01 14:23:01 [notice] 1#1: start worker processes
+...
+
+🌀 tokio> _
+```
+
+---
+
+## ✨ Features
+
+<table>
+<tr>
+<td width="50%">
+
+### 🤖 Multi-Provider LLM
+- **Anthropic Claude** (Direct API or Vertex AI)
 - **OpenAI GPT** (GPT-4o, GPT-4, etc.)
-- **Google Gemini** (Gemini 2.0 Flash, Pro)
+- **Google Gemini** (Flash, Pro)
 - Automatic fallback between providers
 
-### Three Interfaces
-- **CLI** — Interactive terminal with Rich formatting
-- **REST API** — FastAPI server with auth, rate limiting, CORS
-- **Telegram Bot** — Full multimedia support:
-  - Send/receive images (analyzed via Vision API)
-  - Voice messages (transcribed via Whisper/Gemini)
-  - Audio files
-  - Documents (PDF, DOCX, CSV, code files)
-  - YouTube link analysis
-  - File generation and sending (PDF, CSV, PPTX)
+</td>
+<td width="50%">
 
-### 30+ Built-in Tools
+### 🛡️ Security Layers
+- **Prompt Guard** — WAF for LLM prompts (injection detection + audit log to PostgreSQL)
+- **Input Sanitizer** — Blocks reverse shells, crypto miners, fork bombs, SQL injection
+- **API Auth** — Key-based authentication + rate limiting
+- **Telegram ACL** — Owner-based access control
+
+</td>
+</tr>
+<tr>
+<td>
+
+### 🔧 30+ Built-in Tools
 | Category | Tools |
-|----------|-------|
-| **System** | `bash`, `python`, `read_file`, `write_file` |
-| **Network** | `curl`, `wget` |
-| **Docker** | `ps`, `logs`, `start`, `stop`, `restart`, `exec`, `stats`, `inspect` |
-| **Database** | `postgres_query` (read/write with SQL injection protection) |
-| **SSH** | `host_control` (remote server management via SSH) |
-| **DNS** | `hostinger` (DNS record management) |
-| **IoT** | `home_assistant` (lights, switches, sensors, automations) |
-| **Cloud** | `gcp_waf` (deploy/manage WAF on GCP) |
-| **Router** | `router` (OpenWrt/SSH router management) |
-| **Tunnels** | `cloudflared` (Cloudflare tunnel management) |
-| **Security** | `prompt_guard` (LLM prompt injection detection + audit log) |
-| **Documents** | `document` (generate PDF, PPTX, CSV, Markdown) |
-| **Tasks** | `task_orchestrator` (multi-step task automation) |
-| **Calendar** | `calendar` (Google Calendar integration) |
+|:---------|:------|
+| System | `bash`, `python`, `read_file`, `write_file` |
+| Network | `curl`, `wget` |
+| Docker | `ps`, `logs`, `start/stop/restart`, `exec`, `stats` |
+| Database | `postgres_query` (SQL injection protected) |
+| SSH | `host_control` (remote server management) |
+| IoT | `home_assistant` (lights, sensors, automations) |
+| Cloud | `gcp_waf`, `gcp_compute` (full GCP management) |
+| DNS | `hostinger` (DNS record management) |
+| Router | `router` (OpenWrt management) |
+| Tunnels | `cloudflared` (Cloudflare tunnels) |
+| Docs | `document` (generate PDF, PPTX, CSV) |
+| Calendar | `calendar` (Google Calendar) |
+| Tasks | `task_orchestrator` (multi-step automation) |
+| Security | `prompt_guard` (injection detection) |
 
-### Security
-- **Prompt Guard** — WAF for LLM prompts that detects and blocks injection attacks (role override, system prompt extraction, delimiter injection, encoding attacks, tool abuse). All attempts logged to PostgreSQL.
-- **Input Sanitizer** — Blocks reverse shells, crypto miners, fork bombs, destructive commands, SQL injection, and path traversal before tool execution.
-- **Secure Channel** — API key authentication + rate limiting for the REST API.
-- **Telegram ACL** — Owner-based access control with allow/deny lists.
+</td>
+<td>
 
-### Agent Engine
+### 🧠 Agent Engine
 - Multi-round tool-calling loop with automatic retry
-- Session memory (conversation history persisted to PostgreSQL)
-- Workspace memory (persistent notes across sessions)
-- Error learning (remembers past failures to avoid repeating them)
-- Context builder (dynamic system prompts based on available tools)
-- Container watchdog (auto-restarts crashed containers)
-- Plugin system for custom tools
+- **Session memory** — Conversation history in PostgreSQL
+- **Workspace memory** — Persistent notes across sessions
+- **Error learning** — Remembers failures to avoid repeating them
+- **Context builder** — Dynamic system prompts based on available tools
+- **Container watchdog** — Auto-restarts crashed containers
+- **Plugin system** — Drop-in custom tools
 
-### WAF Module (Optional)
-Includes a full WAF (Web Application Firewall) deployment in `tokio_cloud/`:
-- Nginx reverse proxy with rate limiting and honeypots
-- Real-time attack detection via Kafka
-- 26 WAF signatures + 7 behavioral rules
-- IP reputation scoring
-- Multi-phase attack correlation
-- SOC dashboard with live attack feed, world map, and heatmaps
-- GeoIP integration
+</td>
+</tr>
+</table>
 
-## Quick Start
+---
+
+## 📱 Three Interfaces
+
+<table>
+<tr>
+<td width="33%" align="center"><h3>💻 CLI</h3></td>
+<td width="33%" align="center"><h3>🌐 REST API</h3></td>
+<td width="33%" align="center"><h3>📲 Telegram Bot</h3></td>
+</tr>
+<tr>
+<td>
+
+Interactive terminal with Rich formatting
+
+```
+╔══════════════════════════╗
+║  ████████╗ ██████╗  ...  ║
+║  Autonomous AI Agent v2  ║
+╚══════════════════════════╝
+
+LLM: Claude 3.5 Sonnet
+Tools: 32 disponibles
+
+🌀 tokio> _
+```
+
+</td>
+<td>
+
+FastAPI server with auth & CORS
+
+```bash
+curl -X POST localhost:8000/chat \
+  -H "Authorization: Bearer KEY" \
+  -d '{"message": "list containers"}'
+
+# Response:
+{
+  "response": "Running containers:\n
+    nginx (Up 3 days)\n
+    postgres (Up 3 days)",
+  "tools_used": ["docker"],
+  "tokens": 847
+}
+```
+
+</td>
+<td>
+
+Full multimedia support:
+- 📷 **Images** — Analyzed via Vision API
+- 🎤 **Voice** — Transcribed via Whisper/Gemini
+- 🎵 **Audio** files
+- 📄 **Documents** (PDF, DOCX, CSV, code)
+- 🔗 **YouTube** link analysis
+- 📎 **File generation** (PDF, CSV, PPTX sent back to you)
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🚀 Quick Start
 
 ### Option 1: Setup Wizard (recommended)
 
@@ -82,7 +186,7 @@ pip install -e .
 tokio setup
 ```
 
-The wizard walks you through configuring your LLM provider, database, and optional features, then generates `.env` and `docker-compose.yml`.
+> The wizard walks you through LLM provider, database, Telegram, and optional features — then generates `.env` and `docker-compose.yml`.
 
 ### Option 2: Manual Setup
 
@@ -90,17 +194,15 @@ The wizard walks you through configuring your LLM provider, database, and option
 git clone https://github.com/TokioAI/tokioai-v1.8.git tokioai
 cd tokioai
 
-# Configure
 cp .env.example .env
-# Edit .env with your API keys and settings
+# Edit .env with your API keys
 
-# Install
 pip install -e .
 
-# Run CLI
+# Interactive CLI
 tokio
 
-# Or run API server
+# Or start API server
 tokio server
 ```
 
@@ -119,30 +221,35 @@ This starts:
 - `tokio-cli` — API server on port 8200
 - `tokio-telegram` — Telegram bot (if configured)
 
-## Configuration
+---
+
+## ⚙️ Configuration
 
 All configuration is via environment variables. Copy `.env.example` to `.env` and fill in your values.
 
 ### Required
+
 | Variable | Description |
-|----------|-------------|
+|:---------|:------------|
 | `LLM_PROVIDER` | `anthropic`, `openai`, or `gemini` |
 | `ANTHROPIC_API_KEY` | Claude API key (or use Vertex AI) |
 | `POSTGRES_PASSWORD` | PostgreSQL password |
 
-### LLM via Vertex AI (for Claude Opus)
+### LLM via Vertex AI (for Claude on GCP)
+
 | Variable | Description |
-|----------|-------------|
+|:---------|:------------|
 | `USE_ANTHROPIC_VERTEX` | `true` to use Vertex AI |
 | `GCP_PROJECT_ID` | Your GCP project |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path to service account JSON |
 | `ANTHROPIC_VERTEX_REGION` | Region (e.g., `us-east5`) |
 
 ### Optional Features
+
 | Variable | Description |
-|----------|-------------|
+|:---------|:------------|
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token from @BotFather |
-| `TELEGRAM_OWNER_ID` | Your Telegram user ID (use `/myid`) |
+| `TELEGRAM_OWNER_ID` | Your Telegram user ID |
 | `HOST_SSH_HOST` | Remote server for SSH control |
 | `HOME_ASSISTANT_URL` | Home Assistant instance URL |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API token |
@@ -150,58 +257,193 @@ All configuration is via environment variables. Copy `.env.example` to `.env` an
 
 See `.env.example` for the full list.
 
-## Architecture
+---
+
+## 🏗️ Architecture
 
 ```
-                    ┌─────────────┐
-                    │   Telegram   │
-                    │     Bot      │
-                    └──────┬──────┘
-                           │
-┌─────────┐         ┌──────┴──────┐         ┌──────────────┐
-│   CLI   │────────>│  FastAPI    │────────>│  Agent Loop   │
-└─────────┘         │  Server    │         │  (multi-round) │
-                    └─────────────┘         └──────┬───────┘
-                                                    │
-                                            ┌───────┴───────┐
-                                            │  Tool Executor │
-                                            │  (timeouts,    │
-                                            │   circuit      │
-                                            │   breaker)     │
-                                            └───────┬───────┘
-                                                    │
-                    ┌───────────────────────────────┼────────────────┐
-                    │               │               │                │
-              ┌─────┴─────┐  ┌─────┴─────┐  ┌─────┴─────┐  ┌──────┴──────┐
-              │   bash    │  │  docker   │  │ postgres  │  │  host_ssh   │
-              │  python   │  │  logs     │  │  query    │  │  curl/wget  │
-              │  files    │  │  restart  │  │           │  │  IoT / DNS  │
-              └───────────┘  └───────────┘  └───────────┘  └─────────────┘
+                         ┌─────────────────┐
+                         │    Telegram Bot  │
+                         │  (multimedia,    │
+                         │   voice, images) │
+                         └────────┬────────┘
+                                  │
+  ┌───────────┐           ┌───────┴───────┐           ┌─────────────────┐
+  │           │           │               │           │   Agent Loop    │
+  │    CLI    │──────────>│   FastAPI      │──────────>│  (multi-round   │
+  │  (Rich)   │           │   Server      │           │   tool-calling) │
+  │           │           │               │           │                 │
+  └───────────┘           └───────────────┘           └────────┬────────┘
+                                                               │
+                                                    ┌──────────┴──────────┐
+                                                    │   Tool Executor     │
+                                                    │  ┌────────────────┐ │
+                                                    │  │ Circuit Breaker│ │
+                                                    │  │ Timeouts       │ │
+                                                    │  │ Error Recovery │ │
+                                                    │  └────────────────┘ │
+                                                    └──────────┬──────────┘
+                                                               │
+                    ┌──────────────┬───────────────┬───────────┼──────────────┐
+                    │              │               │           │              │
+              ┌─────┴────┐  ┌─────┴─────┐  ┌─────┴────┐ ┌────┴─────┐ ┌─────┴─────┐
+              │  System  │  │  Docker   │  │ Database │ │   SSH    │ │   Cloud   │
+              │ bash     │  │ ps/logs   │  │ postgres │ │ host_ctl │ │ gcp_waf   │
+              │ python   │  │ restart   │  │ query    │ │ curl     │ │ IoT/DNS   │
+              │ files    │  │ exec      │  │          │ │ wget     │ │ tunnels   │
+              └──────────┘  └───────────┘  └──────────┘ └──────────┘ └───────────┘
+
+                    ┌──────────────────────────────────────────────────────┐
+                    │                  Security Layers                    │
+                    │  ┌──────────────┐  ┌──────────────┐  ┌───────────┐ │
+                    │  │ Prompt Guard │  │   Input      │  │  Secure   │ │
+                    │  │ (WAF for LLM │  │  Sanitizer   │  │  Channel  │ │
+                    │  │  prompts)    │  │ (cmd filter) │  │ (API auth)│ │
+                    │  └──────────────┘  └──────────────┘  └───────────┘ │
+                    └──────────────────────────────────────────────────────┘
+
+                    ┌──────────────────────────────────────────────────────┐
+                    │                   Persistence                      │
+                    │  ┌──────────────┐  ┌──────────────┐  ┌───────────┐ │
+                    │  │   Session    │  │  Workspace   │  │   Error   │ │
+                    │  │   Memory    │  │   Memory     │  │  Learner  │ │
+                    │  │ (PostgreSQL) │  │ (cross-sess) │  │ (failures)│ │
+                    │  └──────────────┘  └──────────────┘  └───────────┘ │
+                    └──────────────────────────────────────────────────────┘
 ```
 
 ### Key Modules
+
 | Module | Description | Lines |
-|--------|-------------|-------|
+|:-------|:------------|------:|
 | `engine/agent.py` | Multi-round agent loop with tool calling | 462 |
-| `engine/tools/registry.py` | Tool registration and discovery | 116 |
 | `engine/tools/executor.py` | Async execution with timeouts and circuit breaker | 210 |
 | `engine/tools/builtin/loader.py` | Registers all 30+ built-in tools | 542 |
-| `engine/security/prompt_guard.py` | Prompt injection WAF | 223 |
+| `engine/security/prompt_guard.py` | Prompt injection WAF with PostgreSQL audit log | 223 |
 | `engine/security/input_sanitizer.py` | Command/SQL/path sanitization | 161 |
 | `engine/memory/session.py` | Conversation persistence | 152 |
 | `engine/memory/workspace.py` | Cross-session persistent memory | 283 |
-| `engine/context_builder.py` | Dynamic system prompt builder | 153 |
-| `engine/error_learner.py` | Learn from past tool failures | 143 |
-| `engine/watchdog.py` | Container health monitoring + auto-restart | 351 |
 | `engine/llm/` | Multi-provider LLM abstraction | 6 files |
-| `cli.py` | Interactive CLI with Rich | 181 |
-| `api/server.py` | FastAPI REST server | 269 |
 | `bots/telegram_bot.py` | Full multimedia Telegram bot | 1127 |
 | `setup_wizard.py` | Interactive setup wizard | 707 |
 
-## Adding Custom Tools
+---
 
-### Built-in Tool
+## 🔒 Security
+
+TokioAI has **three security layers** that protect against prompt injection, dangerous commands, and unauthorized access:
+
+### Layer 1: Prompt Guard (LLM WAF)
+Detects and blocks prompt injection attacks **before** they reach the LLM:
+- Role override attempts (`"ignore previous instructions"`)
+- System prompt extraction (`"print your system prompt"`)
+- Delimiter injection (`"```system"`, `"<|endoftext|>"`)
+- Encoding attacks (base64/hex-encoded injections)
+- Tool abuse patterns (`"call bash with rm -rf"`)
+
+All attempts are logged to PostgreSQL with timestamp, risk level, categories, and input preview.
+
+### Layer 2: Input Sanitizer
+Blocks dangerous commands **before** tool execution:
+- Reverse shells (`nc -e`, `bash -i`)
+- Crypto miners (`xmrig`, `stratum://`)
+- Fork bombs (`:(){ :|:& };:`)
+- Destructive commands (`rm -rf /`, `mkfs`, `dd if=/dev/zero`)
+- SQL injection (`'; DROP TABLE`)
+- Path traversal (`../../etc/passwd`)
+
+### Layer 3: Secure Channel
+- API key authentication for REST endpoints
+- Rate limiting per client
+- Telegram ACL with owner-only admin commands
+
+---
+
+## 🌐 WAF Dashboard
+
+TokioAI includes a complete **Web Application Firewall** with a cyberpunk-themed SOC dashboard.
+
+### Dashboard Features
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│  ◉ TokioAI WAF          v3-supreme                  ● LIVE    🔄  │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
+│  │ Requests │ │ Blocked  │ │ Unique   │ │ Critical │ │ Episodes │  │
+│  │  12,847  │ │    342   │ │  1,205   │ │     47   │ │     12   │  │
+│  │  ▲ 23%   │ │          │ │          │ │          │ │          │  │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘  │
+│                                                                      │
+│  ┌────────────────────────────────────┐ ┌──────────────────────┐    │
+│  │  📊 Traffic Timeline              │ │ 🛡️ OWASP Top 10     │    │
+│  │  ████                      ██     │ │                      │    │
+│  │  █████                    ████    │ │  A01  Broken Access  │    │
+│  │  ██████      ███         ██████   │ │  A03  Injection      │    │
+│  │  ████████  ██████  ████ ████████  │ │  A07  XSS            │    │
+│  │  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  │ │  A10  SSRF           │    │
+│  └────────────────────────────────────┘ └──────────────────────┘    │
+│                                                                      │
+│  ┌────────────────────────────────────┐ ┌──────────────────────┐    │
+│  │  🌍 Attack Origins (World Map)    │ │ 🔴 LIVE ATTACKS      │    │
+│  │                                    │ │                      │    │
+│  │     ·  ··                          │ │ ● 45.33.x.x SQLI    │    │
+│  │    ·    ···   ····  ····           │ │   /api/users?id=1'   │    │
+│  │          ··    ··   · ·            │ │                      │    │
+│  │      ·                     🎯      │ │ ● 91.xx.x.x XSS     │    │
+│  │       ·                            │ │   /search?q=<script> │    │
+│  │                 ·                  │ │                      │    │
+│  │               ·                    │ │ ● 185.x.x.x SCAN    │    │
+│  └────────────────────────────────────┘ │   /.env              │    │
+│                                         └──────────────────────┘    │
+│  ┌──────────────────────────────────────────────────────────────┐    │
+│  │ 📊 Trafico │ 📋 Episodios │ 🚫 Bloqueados │ 🏆 Top IPs │  │    │
+│  │ 🔍 Signatures │ ⛓️ Kill Chain │ 📝 Auditoria              │    │
+│  ├──────────────────────────────────────────────────────────────┤    │
+│  │ Hora      IP            Method  URI           Sev    Threat │    │
+│  │ 14:23:01  45.33.32.x    GET     /api/users    HIGH   SQLI   │    │
+│  │ 14:22:58  91.108.x.x    POST    /login        CRIT   BRUTE  │    │
+│  │ 14:22:45  185.220.x.x   GET     /.env         HIGH   SCAN   │    │
+│  │ 14:22:30  23.94.x.x     GET     /wp-admin     MED    PROBE  │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+### WAF Engine Features
+
+| Feature | Description |
+|:--------|:------------|
+| **26 WAF Signatures** | SQL injection, XSS, command injection, path traversal, Log4Shell, SSRF, and more |
+| **7 Behavioral Rules** | Rate limiting, brute force detection, scanner detection, honeypot traps |
+| **Real-time Detection** | Nginx → Kafka → Realtime Processor pipeline |
+| **IP Reputation** | Score-based reputation tracking per IP in PostgreSQL |
+| **Multi-phase Correlation** | Recon → Probe → Exploit → Exfil attack chain detection |
+| **Auto-blocking** | Instant block on critical signatures (confidence ≥ 0.90) |
+| **Honeypot Endpoints** | Fake `/wp-admin`, `/phpmyadmin`, `/.env` that instantly flag attackers |
+| **GeoIP Integration** | Attack origin mapping via DB-IP |
+| **Threat Intelligence** | AbuseIPDB integration for IP reputation lookups |
+| **SSE Live Feed** | Real-time Server-Sent Events attack stream |
+| **Attack Heatmap** | Hour-of-day × Day-of-week threat visualization |
+| **CSV Export** | Export filtered logs for analysis |
+
+### WAF Deployment
+
+```bash
+cd tokio_cloud/gcp-live
+cp .env.example .env
+# Edit .env with your passwords
+docker compose up -d
+```
+
+Deploys **7 containers**: PostgreSQL, Zookeeper, Kafka, Nginx WAF proxy, Log processor, Realtime attack detector, SOC Dashboard API.
+
+---
+
+## 🔌 Adding Custom Tools
+
+### Method 1: Built-in Tool
+
 Create a file in `tokio_agent/engine/tools/builtin/`:
 
 ```python
@@ -232,8 +474,9 @@ registry.register(
 )
 ```
 
-### Plugin Tool
-Drop a Python file in `workspace/plugins/`:
+### Method 2: Plugin (Hot-reload)
+
+Drop a Python file in `workspace/plugins/` — auto-discovered on startup:
 
 ```python
 # workspace/plugins/weather.py
@@ -244,23 +487,24 @@ TOOL_CATEGORY = "Custom"
 
 async def execute(city: str) -> str:
     import httpx
-    resp = await httpx.AsyncClient().get(f"https://wttr.in/{city}?format=3")
-    return resp.text
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(f"https://wttr.in/{city}?format=3")
+        return resp.text
 ```
 
-Plugins are auto-discovered on startup.
+---
 
-## API Endpoints
+## 📡 API Endpoints
 
 | Method | Path | Description |
-|--------|------|-------------|
+|:-------|:-----|:------------|
 | `POST` | `/chat` | Send a message and get a response |
 | `GET` | `/health` | Health check |
 | `GET` | `/tools` | List available tools |
 | `GET` | `/sessions` | List sessions |
 | `DELETE` | `/sessions/{id}` | Delete a session |
 
-### Example API Call
+### Example
 
 ```bash
 curl -X POST http://localhost:8000/chat \
@@ -269,66 +513,70 @@ curl -X POST http://localhost:8000/chat \
   -d '{"message": "list running docker containers", "session_id": "my-session"}'
 ```
 
-## WAF Deployment (Optional)
-
-The `tokio_cloud/` directory contains a complete WAF deployment:
-
-```bash
-cd tokio_cloud/gcp-live
-cp .env.example .env
-# Edit .env with your passwords
-docker compose up -d
+**Response:**
+```json
+{
+  "response": "Here are the running containers:\n\n| Name | Status | Ports |\n|------|--------|-------|\n| nginx | Up 3 days | 80, 443 |\n| postgres | Up 3 days | 5432 |",
+  "tools_used": ["docker"],
+  "rounds": 1,
+  "tokens_used": 847,
+  "session_id": "my-session"
+}
 ```
 
-This deploys 7 containers: PostgreSQL, Zookeeper, Kafka, Nginx WAF proxy, log processor, realtime attack detector, and SOC dashboard.
+---
 
-See `tokio_cloud/waf-deployment/README.md` for detailed instructions.
-
-## Tests
-
-```bash
-pip install pytest pytest-asyncio
-pytest tests/ -v
-```
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 tokioai/
 ├── tokio_agent/
-│   ├── cli.py                    # Interactive CLI
-│   ├── setup_wizard.py           # Setup wizard (tokio setup)
+│   ├── cli.py                         # Interactive CLI with Rich
+│   ├── setup_wizard.py                # Setup wizard (tokio setup)
 │   ├── api/
-│   │   └── server.py             # FastAPI REST server
+│   │   └── server.py                  # FastAPI REST server
 │   ├── bots/
-│   │   ├── telegram_bot.py       # Telegram bot
+│   │   ├── telegram_bot.py            # Telegram bot (multimedia)
 │   │   └── Dockerfile.telegram
 │   └── engine/
-│       ├── agent.py              # Agent loop
-│       ├── context_builder.py    # System prompt builder
-│       ├── db.py                 # PostgreSQL helpers
-│       ├── error_learner.py      # Error learning
-│       ├── watchdog.py           # Container watchdog
-│       ├── llm/                  # LLM providers
-│       │   ├── anthropic_llm.py
-│       │   ├── openai_llm.py
-│       │   └── gemini_llm.py
-│       ├── memory/               # Persistence
-│       │   ├── session.py
-│       │   └── workspace.py
-│       ├── security/             # Security layers
-│       │   ├── prompt_guard.py
-│       │   ├── input_sanitizer.py
-│       │   └── secure_channel.py
+│       ├── agent.py                   # Agent loop (multi-round)
+│       ├── context_builder.py         # Dynamic system prompt builder
+│       ├── db.py                      # PostgreSQL helpers
+│       ├── error_learner.py           # Error learning
+│       ├── watchdog.py                # Container health watchdog
+│       ├── llm/                       # LLM providers
+│       │   ├── anthropic_llm.py       #   Claude (direct + Vertex AI)
+│       │   ├── openai_llm.py          #   GPT-4o, GPT-4
+│       │   └── gemini_llm.py          #   Gemini Flash, Pro
+│       ├── memory/                    # Persistence layer
+│       │   ├── session.py             #   Conversation history
+│       │   └── workspace.py           #   Cross-session memory
+│       ├── security/                  # Security layers
+│       │   ├── prompt_guard.py        #   LLM prompt WAF
+│       │   ├── input_sanitizer.py     #   Command sanitization
+│       │   └── secure_channel.py      #   API authentication
 │       └── tools/
-│           ├── registry.py
-│           ├── executor.py
-│           ├── plugins/          # Plugin loader
-│           └── builtin/          # 30+ built-in tools
-├── tokio_cloud/                  # WAF deployment (optional)
-│   ├── gcp-live/                 # Production WAF config
-│   └── waf-deployment/           # WAF setup docs
-├── tests/                        # Test suite
+│           ├── registry.py            # Tool registration
+│           ├── executor.py            # Async executor + circuit breaker
+│           ├── plugins/               # Plugin auto-loader
+│           └── builtin/               # 30+ built-in tools
+│               ├── loader.py          #   Tool registration
+│               ├── system_tools.py    #   bash, python, files
+│               ├── docker_tools.py    #   Docker management
+│               ├── db_tools.py        #   PostgreSQL queries
+│               ├── gcp_tools.py       #   GCP WAF + Compute
+│               ├── host_tools.py      #   SSH remote control
+│               ├── iot_tools.py       #   Home Assistant
+│               └── ...                #   + 10 more tool files
+├── tokio_cloud/                       # WAF deployment (optional)
+│   ├── gcp-live/                      # Production WAF stack
+│   │   ├── docker-compose.yml         #   7-container stack
+│   │   ├── dashboard-app.py           #   SOC dashboard (1385 lines)
+│   │   ├── realtime-processor.py      #   WAF engine (896 lines)
+│   │   ├── nginx.conf                 #   Reverse proxy + rate limiting
+│   │   └── deploy.sh                  #   Deployment script
+│   └── waf-deployment/                # WAF setup docs + ModSecurity
+├── tests/                             # Test suite (10 test files)
 ├── docker-compose.yml
 ├── Dockerfile
 ├── requirements.txt
@@ -336,13 +584,38 @@ tokioai/
 └── .env.example
 ```
 
-## Requirements
+---
 
-- Python 3.11+
-- PostgreSQL 15+ (for session/memory persistence)
-- Docker (optional, for containerized deployment)
-- At least one LLM API key (Anthropic, OpenAI, or Gemini)
+## 🧪 Tests
 
-## License
+```bash
+pip install pytest pytest-asyncio
+pytest tests/ -v
+```
+
+---
+
+## 📋 Requirements
+
+| Requirement | Version | Notes |
+|:------------|:--------|:------|
+| Python | 3.11+ | Required |
+| PostgreSQL | 15+ | Session/memory persistence |
+| Docker | 20+ | Optional, for containerized deployment |
+| LLM API Key | — | At least one: Anthropic, OpenAI, or Gemini |
+
+---
+
+## 📜 License
 
 GPL v3 — See [LICENSE](LICENSE) for details.
+
+---
+
+<div align="center">
+
+**Built with ❤️ by [TokioAI](https://github.com/TokioAI)**
+
+*Self-hosted AI that actually does things.*
+
+</div>
