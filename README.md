@@ -670,7 +670,7 @@ GPL v3 — Copyright (c) 2026 TokioAI Security Research, Inc. See [LICENSE](LICE
 
 A project by **[TokioAI Security Research, Inc.](https://tokioia.com)**
 
-Built by **[MrMoz](https://github.com/TokioAI)** — Security architect, hacker, builder.
+Built by **[@daletoniris](https://github.com/daletoniris)** (MrMoz) — Security architect, hacker, builder.
 
 TokioAI started as a personal tool to automate SOC operations and infrastructure management. It grew into a full framework because every time something broke at 3 AM, the answer was always the same: "the agent should handle this."
 
