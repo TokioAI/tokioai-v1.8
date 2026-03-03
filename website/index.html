@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+
+    <title>TokioAI — Autonomous AI Agent & SOC Platform</title>
+    <meta
+      name="description"
+      content="TokioAI v2: autonomous AI agent with 30+ tools, 26 WAF signatures, multi-LLM support, real-time SOC dashboard, Telegram bot, GCP auto-deploy, and more."
+    />
+
+    <link rel="canonical" href="https://github.com/TokioAI" />
+    <meta property="og:title" content="TokioAI v2 — Autonomous AI Agent" />
+    <meta property="og:description" content="Execute, don't chat. An autonomous AI agent with 30+ tools, production WAF, SOC dashboard, and multi-LLM support." />
+    <meta property="og:type" content="website" />
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='8' fill='%2300ffc8'/></svg>" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <!-- ─── TOPBAR ─── -->
+    <header class="topbar" id="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="#">
+          <div class="spiral-logo spiral-xs" id="navLogo"></div>
+          <span class="brand__name">TokioAI</span>
+        </a>
+
+        <nav class="nav" id="mainNav">
+          <a href="#demos" data-i18n="nav_demos">Demos</a>
+          <a href="#features" data-i18n="nav_features">Features</a>
+          <a href="#tools" data-i18n="nav_tools">Tools</a>
+          <a href="#waf" data-i18n="nav_waf">WAF & SOC</a>
+          <a href="#architecture" data-i18n="nav_arch">Architecture</a>
+          <a href="#security" data-i18n="nav_sec">Security</a>
+          <a href="#quickstart" data-i18n="nav_quickstart">Quickstart</a>
+        </nav>
+
+        <div class="topbar__cta">
+          <div class="lang" role="group" aria-label="Language">
+            <button class="btn btn--ghost btn--sm" type="button" data-lang="en">EN</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-lang="es">ES</button>
+          </div>
+          <a class="btn btn--primary" href="https://github.com/TokioAI" target="_blank" rel="noreferrer">GitHub</a>
+          <button class="hamburger" id="hamburger" type="button" aria-label="Menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- ─── HERO ─── -->
+      <section class="hero">
+        <canvas id="particleCanvas" class="hero__particles"></canvas>
+        <div class="container hero__inner">
+          <div class="hero__copy">
+            <p class="kicker" data-i18n="kicker">Autonomous AI Agent Framework</p>
+            <h1 class="hero__title">
+              <span id="heroTyping"></span><span class="cursor">|</span>
+            </h1>
+            <p class="hero__subtitle anim" data-i18n="hero_subtitle">
+              TokioAI is an autonomous AI agent that executes — not just chats. 30+ built-in tools,
+              production-grade WAF with 26 signatures, real-time SOC dashboard, multi-LLM support
+              (Claude, GPT-4, Gemini), Telegram bot with vision &amp; voice, GCP auto-deploy,
+              and infrastructure-as-code. Control everything from your terminal, Telegram, or REST API.
+            </p>
+
+            <div class="hero__actions anim">
+              <a class="btn btn--primary btn--lg" href="#quickstart" data-i18n="cta_start">Get Started</a>
+              <a class="btn btn--ghost btn--lg" href="https://github.com/TokioAI" target="_blank" data-i18n="cta_github">View on GitHub</a>
+            </div>
+
+            <div class="hero__badges anim" aria-label="Core technologies">
+              <span class="badge">30+ Tools</span>
+              <span class="badge">26 WAF Signatures</span>
+              <span class="badge">Multi-LLM</span>
+              <span class="badge">SOC Dashboard</span>
+              <span class="badge">Telegram Bot</span>
+              <span class="badge">GCP Deploy</span>
+              <span class="badge">Docker</span>
+              <span class="badge">PostgreSQL</span>
+              <span class="badge">Kafka</span>
+              <span class="badge">REST API</span>
+              <span class="badge">WebSocket</span>
+              <span class="badge">Home Assistant</span>
+            </div>
+          </div>
+
+          <div class="hero__logo-area">
+            <div class="spiral-logo spiral-lg" id="heroLogo"></div>
+            <div class="hero__label">TokioAI</div>
+            <div class="hero__sublabel" data-i18n="hero_sublabel">Execute, Don't Chat</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── STATS BAR ─── -->
+      <section class="stats-bar">
+        <div class="container stats-bar__inner">
+          <div class="stat anim">
+            <span class="stat__num" data-count="30">0</span>
+            <span class="stat__label" data-i18n="stat_tools">Built-in Tools</span>
+          </div>
+          <div class="stat anim">
+            <span class="stat__num" data-count="26">0</span>
+            <span class="stat__label" data-i18n="stat_sigs">WAF Signatures</span>
+          </div>
+          <div class="stat anim">
+            <span class="stat__num" data-count="3">0</span>
+            <span class="stat__label" data-i18n="stat_llm">LLM Providers</span>
+          </div>
+          <div class="stat anim">
+            <span class="stat__num" data-count="7">0</span>
+            <span class="stat__label" data-i18n="stat_behav">Behavioral Rules</span>
+          </div>
+          <div class="stat anim">
+            <span class="stat__num" data-count="3">0</span>
+            <span class="stat__label" data-i18n="stat_sec">Security Layers</span>
+          </div>
+          <div class="stat anim">
+            <span class="stat__num" data-count="3">0</span>
+            <span class="stat__label" data-i18n="stat_iface">Interfaces</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── DEMOS ─── -->
+      <section id="demos" class="section section--alt">
+        <div class="container">
+          <h2 class="anim" data-i18n="demo_title">See TokioAI in Action</h2>
+          <p class="lead anim" data-i18n="demo_lead">
+            Real footage of the autonomous agent detecting, analyzing, and blocking cyber threats — all in real time.
+          </p>
+
+          <div class="grid grid--2 demo-grid">
+            <div class="demo-card anim">
+              <div class="demo-label" data-i18n="demo_waf_label">WAF &amp; SOC Dashboard</div>
+              <div class="demo-video-wrap demo-video-wrap--landscape">
+                <video
+                  class="demo-video"
+                  poster="poster-waf.jpg"
+                  preload="metadata"
+                  muted
+                  playsinline
+                  loop
+                >
+                  <source src="tokio-waf-dashboard.mp4" type="video/mp4" />
+                </video>
+                <button class="demo-play" aria-label="Play" data-video="waf">
+                  <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="23" stroke="rgba(0,255,200,0.5)" stroke-width="2"/><polygon points="19,14 36,24 19,34" fill="var(--accent)"/></svg>
+                </button>
+              </div>
+              <p class="demo-desc" data-i18n="demo_waf_desc">
+                Supreme SOC Dashboard v3: blocked IPs, live traffic, OWASP breakdown, world attack map, heatmap, and real-time threat feed with multi-phase correlation.
+              </p>
+            </div>
+
+            <div class="demo-card anim">
+              <div class="demo-label" data-i18n="demo_tg_label">Telegram Bot — Live Ops</div>
+              <div class="demo-video-wrap demo-video-wrap--portrait">
+                <video
+                  class="demo-video"
+                  poster="poster-telegram.jpg"
+                  preload="metadata"
+                  muted
+                  playsinline
+                  loop
+                >
+                  <source src="tokio-telegram-bot.mp4" type="video/mp4" />
+                </video>
+                <button class="demo-play" aria-label="Play" data-video="tg">
+                  <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="23" stroke="rgba(0,255,200,0.5)" stroke-width="2"/><polygon points="19,14 36,24 19,34" fill="var(--accent)"/></svg>
+                </button>
+              </div>
+              <p class="demo-desc" data-i18n="demo_tg_desc">
+                Autonomous threat analysis via Telegram: multi-phase attack detection, IP profiling (ASN, country, risk score), automatic blocking, and WiFi router security audit — all from a single chat.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── FEATURES ─── -->
+      <section id="features" class="section">
+        <div class="container">
+          <h2 class="anim" data-i18n="feat_title">What Makes TokioAI Different</h2>
+          <p class="lead anim" data-i18n="feat_lead">
+            Not another chatbot. An autonomous agent that thinks, acts, observes, and learns.
+            Multi-round tool execution with up to 10 consecutive operations per message.
+          </p>
+
+          <div class="grid grid--3">
+            <article class="card card--glow anim">
+              <div class="card__icon">&#x1f916;</div>
+              <h3 data-i18n="f1_title">Autonomous Agent Loop</h3>
+              <p data-i18n="f1_body">
+                Think &rarr; Act &rarr; Observe &rarr; Learn. The agent chains multi-step tool operations,
+                handles errors with retries, learns from failures to avoid repeating them,
+                and requires confirmation for dangerous actions. Up to 10 tool rounds per message
+                with a 10-minute execution timeout.
+              </p>
+            </article>
+            <article class="card card--glow anim">
+              <div class="card__icon">&#x1f9e0;</div>
+              <h3 data-i18n="f2_title">Multi-LLM with Auto-Fallback</h3>
+              <p data-i18n="f2_body">
+                Supports Anthropic Claude (Opus 4, Sonnet 4), OpenAI GPT (GPT-4o, o1, o3),
+                and Google Gemini (2.0 Flash, Pro). Automatic fallback between providers
+                ensures zero downtime. Configure your preferred chain in .env.
+              </p>
+            </article>
+            <article class="card card--glow anim">
+              <div class="card__icon">&#x1f4ac;</div>
+              <h3 data-i18n="f3_title">Telegram Bot — Full Multimedia</h3>
+              <p data-i18n="f3_body">
+                Not just text. Process images with Vision API, transcribe voice messages
+                (Gemini + Whisper), analyze documents (PDF, DOCX, code), extract YouTube metadata,
+                generate and send files (PDF, CSV, PPTX). ACL security with owner-only admin commands.
+              </p>
+            </article>
+            <article class="card card--glow anim">
+              <div class="card__icon">&#x1f6e1;&#xfe0f;</div>
+              <h3 data-i18n="f4_title">Production WAF — 26 Signatures</h3>
+              <p data-i18n="f4_body">
+                Enterprise-grade WAF engine with 26 regex signatures detecting SQLi, XSS, RCE,
+                LFI, SSRF, Log4Shell, XXE, SSTI, CRLF, NoSQL injection, HTTP smuggling,
+                deserialization attacks, and more. Plus 7 behavioral rules for anomaly detection.
+                Instant first-hit blocking for critical threats.
+              </p>
+            </article>
+            <article class="card card--glow anim">
+              <div class="card__icon">&#x1f4ca;</div>
+              <h3 data-i18n="f5_title">Supreme SOC Dashboard</h3>
+              <p data-i18n="f5_body">
+                Real-time SSE attack feed, world attack map with GeoIP, OWASP Top 10 breakdown,
+                kill chain visualization, attack heatmap (hour x day), threat intelligence
+                with AbuseIPDB, IP reputation tracking, signature monitor, and CSV export.
+                Cyberpunk dark theme with JWT auth.
+              </p>
+            </article>
+            <article class="card card--glow anim">
+              <div class="card__icon">&#x2601;&#xfe0f;</div>
+              <h3 data-i18n="f6_title">One-Command GCP Deploy</h3>
+              <p data-i18n="f6_body">
+                Deploy the entire stack on Google Cloud with a single natural language command.
+                Creates VPC, firewall rules, static IP, VM, 7 Docker containers, SSL certificates,
+                and DNS. Destroy everything with another command. Uses Google Cloud Python SDK directly.
+              </p>
+            </article>
+            <article class="card card--glow anim">
+              <div class="card__icon">&#x1f9f0;</div>
+              <h3 data-i18n="f7_title">30+ Built-in Tools</h3>
+              <p data-i18n="f7_body">
+                System (bash, python, file I/O), Docker management, PostgreSQL queries,
+                GCP compute &amp; WAF, SSH host control, IoT &amp; Home Assistant,
+                router control (OpenWrt), DNS management, tunnel management,
+                task orchestration, document generation, and more.
+              </p>
+            </article>
+            <article class="card card--glow anim">
+              <div class="card__icon">&#x1f4a1;</div>
+              <h3 data-i18n="f8_title">Error Learning &amp; Memory</h3>
+              <p data-i18n="f8_body">
+                Cross-session persistent memory (SOUL.md + MEMORY.md). The agent remembers
+                your preferences, learned facts, and past failures. Error learner avoids
+                repeating mistakes. Plugin system for custom tools via workspace/plugins/.
+              </p>
+            </article>
+            <article class="card card--glow anim">
+              <div class="card__icon">&#x1f504;</div>
+              <h3 data-i18n="f9_title">Container Watchdog &amp; Self-Heal</h3>
+              <p data-i18n="f9_body">
+                Automatic health monitoring of all Docker containers. Detects unhealthy
+                or crashed services and auto-restarts them. Logs all events. Self-heal
+                tool available for manual container recovery and diagnostics.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── TOOLS ─── -->
+      <section id="tools" class="section section--alt">
+        <div class="container">
+          <h2 class="anim" data-i18n="tools_title">30+ Tools in 15 Categories</h2>
+          <p class="lead anim" data-i18n="tools_lead">
+            Every tool the agent needs to manage infrastructure, security, deployments, and operations autonomously.
+          </p>
+
+          <div class="grid grid--3">
+            <div class="card anim">
+              <h3>&#x1f4bb; System</h3>
+              <p class="tech-list">bash &middot; python &middot; read_file &middot; write_file</p>
+            </div>
+            <div class="card anim">
+              <h3>&#x1f433; Docker</h3>
+              <p class="tech-list">ps &middot; logs &middot; start &middot; stop &middot; restart &middot; exec &middot; stats &middot; images</p>
+            </div>
+            <div class="card anim">
+              <h3>&#x2601;&#xfe0f; GCP</h3>
+              <p class="tech-list">gcp_compute &middot; gcp_waf &middot; gcp_waf_deploy &middot; gcp_waf_destroy</p>
+            </div>
+            <div class="card anim">
+              <h3>&#x1f6e1;&#xfe0f; WAF</h3>
+              <p class="tech-list">status &middot; blocked_ips &middot; block/unblock &middot; rules &middot; logs &middot; health &middot; audit</p>
+            </div>
+            <div class="card anim">
+              <h3>&#x1f5a5;&#xfe0f; SSH Host</h3>
+              <p class="tech-list">run &middot; services &middot; cron &middot; systemctl &middot; packages &middot; reboot &middot; journalctl</p>
+            </div>
+            <div class="card anim">
+              <h3>&#x1f3e0; IoT / Home</h3>
+              <p class="tech-list">Alexa speak &middot; lights &middot; switches &middot; vacuum &middot; music &middot; entities</p>
+            </div>
+            <div class="card anim">
+              <h3>&#x1f4e1; Router</h3>
+              <p class="tech-list">firewall &middot; WiFi &middot; DNS &middot; DHCP &middot; VPN &middot; clients &middot; diagnostics</p>
+            </div>
+            <div class="card anim">
+              <h3>&#x1f5c4;&#xfe0f; Database</h3>
+              <p class="tech-list">postgres_query with SQL injection protection</p>
+            </div>
+            <div class="card anim">
+              <h3>&#x1f310; Network</h3>
+              <p class="tech-list">curl &middot; wget &middot; cloudflare &middot; hostinger DNS &middot; tunnels</p>
+            </div>
+            <div class="card anim">
+              <h3>&#x1f4c4; Documents</h3>
+              <p class="tech-list">generate_pdf &middot; generate_slides &middot; generate_csv</p>
+            </div>
+            <div class="card anim">
+              <h3>&#x2699;&#xfe0f; Orchestration</h3>
+              <p class="tech-list">cron &middot; scripts &middot; playbooks &middot; scheduled tasks &middot; packages</p>
+            </div>
+            <div class="card anim">
+              <h3>&#x1f50c; Infra &amp; More</h3>
+              <p class="tech-list">system_info &middot; monitoring &middot; backups &middot; tenant mgmt &middot; preferences</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── WAF & SOC ─── -->
+      <section id="waf" class="section">
+        <div class="container">
+          <h2 class="anim" data-i18n="waf_title">WAF &amp; SOC Engine — Deep Dive</h2>
+          <p class="lead anim" data-i18n="waf_lead">
+            A production-grade security pipeline processing every HTTP request through multiple analysis layers.
+            26 signatures, 7 behavioral rules, honeypot detection, IP reputation, and multi-phase attack correlation.
+          </p>
+
+          <div class="pipeline">
+            <div class="pipeline__step anim">
+              <div class="pipeline__num">1</div>
+              <div class="pipeline__body">
+                <h3 data-i18n="waf_s1_title">Traffic Ingestion</h3>
+                <p data-i18n="waf_s1_body">
+                  Nginx reverse proxy captures every HTTP/HTTPS request with rate limiting
+                  (general: 10r/s, login: 2r/m, API: 30r/s). A log processor tails access logs
+                  in real-time and streams structured JSON events to Apache Kafka.
+                </p>
+              </div>
+            </div>
+            <div class="pipeline__step anim">
+              <div class="pipeline__num">2</div>
+              <div class="pipeline__body">
+                <h3 data-i18n="waf_s2_title">26 WAF Signatures + 7 Behavioral Rules</h3>
+                <p data-i18n="waf_s2_body">
+                  <strong>Injection (13):</strong> SQLi, XSS, Command Injection, XXE, NoSQL, SSTI, CRLF, Log4Shell, LDAP.
+                  <strong>Access Control (3):</strong> Path Traversal/LFI, Scanner Detection, WebSocket Hijack.
+                  <strong>Plus:</strong> SSRF, Brute Force, HTTP Smuggling, Deserialization, Cryptominer, API Abuse, Exposed Configs.
+                  <strong>Behavioral:</strong> Recon, Exploit Attempts, Malformed Requests, Brute Force, Slow Attacks, Data Exfiltration.
+                </p>
+              </div>
+            </div>
+            <div class="pipeline__step anim">
+              <div class="pipeline__num">3</div>
+              <div class="pipeline__body">
+                <h3 data-i18n="waf_s3_title">Honeypot &amp; IP Reputation</h3>
+                <p data-i18n="waf_s3_body">
+                  Fake endpoints (/wp-admin, /.env, /phpmyadmin) instantly identify attackers (WAF-5001, 0.99 confidence).
+                  Persistent IP reputation scoring in PostgreSQL tracks attack history per IP.
+                  GeoIP via DB-IP Lite for geographic threat intelligence.
+                </p>
+              </div>
+            </div>
+            <div class="pipeline__step anim">
+              <div class="pipeline__num">4</div>
+              <div class="pipeline__body">
+                <h3 data-i18n="waf_s4_title">Multi-Phase Attack Correlation</h3>
+                <p data-i18n="waf_s4_body">
+                  Detects attack chains: Recon &rarr; Probe &rarr; Exploit &rarr; Exfiltration.
+                  Groups same-IP attacks within 600s windows into episodes.
+                  Severity auto-escalates based on event count, types, and attack phases.
+                  OWASP Top 10 2021 classification for every threat.
+                </p>
+              </div>
+            </div>
+            <div class="pipeline__step anim">
+              <div class="pipeline__num">5</div>
+              <div class="pipeline__body">
+                <h3 data-i18n="waf_s5_title">Instant Blocking &amp; Auto-Response</h3>
+                <p data-i18n="waf_s5_body">
+                  <strong>Tier 1:</strong> Instant block on critical signatures (confidence &ge; 0.90) — first hit, no waiting.<br>
+                  <strong>Tier 2:</strong> Episode-based block after 3+ attack episodes.<br>
+                  <strong>Tier 3:</strong> Rate-limit block at 40 req/5min threshold.<br>
+                  Nginx blocklist updated with zero-downtime reload via sidecar container. 24h default block duration.
+                </p>
+              </div>
+            </div>
+            <div class="pipeline__step anim">
+              <div class="pipeline__num">6</div>
+              <div class="pipeline__body">
+                <h3 data-i18n="waf_s6_title">Supreme SOC Dashboard</h3>
+                <p data-i18n="waf_s6_body">
+                  Real-time SSE attack feed, world attack map, OWASP breakdown, kill chain visualization,
+                  attack heatmap (hour &times; day), AbuseIPDB threat intelligence, signature monitor with hit counts,
+                  IP reputation tracking, CSV export, and cyberpunk dark theme.
+                  JWT authentication with full audit trail in PostgreSQL.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── ARCHITECTURE ─── -->
+      <section id="architecture" class="section section--alt">
+        <div class="container">
+          <h2 class="anim" data-i18n="arch_title">System Architecture</h2>
+          <p class="lead anim" data-i18n="arch_lead">
+            Two deployment stacks working together — the AI Agent and the WAF/SOC infrastructure.
+          </p>
+
+          <!-- Agent Stack -->
+          <h3 class="arch-subtitle anim">Agent Stack (3 containers)</h3>
+          <div class="timeline">
+            <div class="timeline__item anim">
+              <div class="timeline__num">&#x1f916;</div>
+              <div class="timeline__body">
+                <h3 data-i18n="arch_1_title">TokioAI Agent Engine</h3>
+                <p data-i18n="arch_1_body">
+                  FastAPI service with async multi-round agent loop (Think &rarr; Act &rarr; Observe &rarr; Learn).
+                  Multi-LLM support with automatic fallback (Claude, GPT-4, Gemini).
+                  30+ tools, error learning, persistent workspace memory, prompt guard security,
+                  and WebSocket interactive sessions. REST API + CLI interfaces.
+                </p>
+              </div>
+            </div>
+            <div class="timeline__item anim">
+              <div class="timeline__num">&#x1f4ac;</div>
+              <div class="timeline__body">
+                <h3 data-i18n="arch_2_title">Telegram Bot</h3>
+                <p data-i18n="arch_2_body">
+                  Full multimedia Telegram interface: text, images (Vision API), voice (Gemini + Whisper),
+                  documents (PDF, DOCX, code), file generation (PDF, CSV, PPTX), YouTube metadata.
+                  ACL security with owner-only admin commands. Retry logic for network resilience.
+                </p>
+              </div>
+            </div>
+            <div class="timeline__item anim">
+              <div class="timeline__num">&#x1f5c4;&#xfe0f;</div>
+              <div class="timeline__body">
+                <h3 data-i18n="arch_3_title">PostgreSQL</h3>
+                <p data-i18n="arch_3_body">
+                  Persistent storage for session memory, workspace data, user preferences, error learning history,
+                  prompt guard audit logs, and WAF events. Volumes for data persistence across container restarts.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- WAF Stack -->
+          <h3 class="arch-subtitle anim" style="margin-top:40px">WAF/SOC Stack (7 containers)</h3>
+          <div class="timeline">
+            <div class="timeline__item anim">
+              <div class="timeline__num">&#x1f6e1;&#xfe0f;</div>
+              <div class="timeline__body">
+                <h3>Nginx WAF Proxy</h3>
+                <p>Reverse proxy with rate limiting, structured logging, SSL/TLS, dynamic IP blocklist with zero-downtime reload via sidecar.</p>
+              </div>
+            </div>
+            <div class="timeline__item anim">
+              <div class="timeline__num">&#x1f4e8;</div>
+              <div class="timeline__body">
+                <h3>Kafka + Zookeeper</h3>
+                <p>High-throughput event streaming pipeline. Log processor tails Nginx access logs and publishes structured JSON. Handles millions of events/min.</p>
+              </div>
+            </div>
+            <div class="timeline__item anim">
+              <div class="timeline__num">&#x1f9e0;</div>
+              <div class="timeline__body">
+                <h3>Real-Time Processor</h3>
+                <p>Consumes Kafka events, runs 26 WAF signatures + 7 behavioral rules, OWASP classification, episode detection, IP reputation scoring, auto-blocking triggers.</p>
+              </div>
+            </div>
+            <div class="timeline__item anim">
+              <div class="timeline__num">&#x1f4ca;</div>
+              <div class="timeline__body">
+                <h3>Dashboard API</h3>
+                <p>Supreme SOC Dashboard with SSE live feed, world map, kill chain, heatmap, AbuseIPDB integration, signature monitor, CSV export, JWT auth.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Architecture Diagram -->
+          <div class="arch-diagram anim">
+            <div class="arch-flow">
+              <div class="arch-node arch-node--primary">User</div>
+              <div class="arch-arrow">&rarr;</div>
+              <div class="arch-node arch-node--accent">CLI / API / Telegram</div>
+              <div class="arch-arrow">&rarr;</div>
+              <div class="arch-node arch-node--primary">TokioAI Agent</div>
+              <div class="arch-arrow">&rarr;</div>
+              <div class="arch-node arch-node--accent">30+ Tools</div>
+            </div>
+            <div class="arch-flow" style="margin-top: 16px">
+              <div class="arch-node arch-node--secondary">Internet</div>
+              <div class="arch-arrow">&rarr;</div>
+              <div class="arch-node arch-node--accent">Nginx WAF</div>
+              <div class="arch-arrow">&rarr;</div>
+              <div class="arch-node arch-node--secondary">Kafka</div>
+              <div class="arch-arrow">&rarr;</div>
+              <div class="arch-node arch-node--accent">ML Processor</div>
+              <div class="arch-arrow">&rarr;</div>
+              <div class="arch-node arch-node--secondary">PostgreSQL</div>
+              <div class="arch-arrow">&rarr;</div>
+              <div class="arch-node arch-node--accent">SOC Dashboard</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── INTEGRATIONS ─── -->
+      <section id="integrations" class="section">
+        <div class="container">
+          <h2 class="anim" data-i18n="int_title">3 Interfaces, Infinite Control</h2>
+          <p class="lead anim" data-i18n="int_lead">
+            Control TokioAI from anywhere: your terminal, a REST API, or Telegram.
+          </p>
+
+          <div class="grid grid--3">
+            <div class="card card--glow anim">
+              <div class="card__icon">&#x1f4bb;</div>
+              <h3 data-i18n="int_cli_title">CLI (Terminal)</h3>
+              <p data-i18n="int_cli_body">
+                Interactive terminal with Rich formatting, real-time tool execution indicators,
+                syntax highlighting, and pretty output. Full conversation sessions.
+              </p>
+            </div>
+            <div class="card card--glow anim">
+              <div class="card__icon">&#x1f310;</div>
+              <h3 data-i18n="int_api_title">REST API + WebSocket</h3>
+              <p data-i18n="int_api_body">
+                FastAPI server with /chat, /health, /stats, /tools, /sessions endpoints.
+                WebSocket for interactive sessions. API key authentication and rate limiting.
+              </p>
+            </div>
+            <div class="card card--glow anim">
+              <div class="card__icon">&#x1f4f1;</div>
+              <h3 data-i18n="int_tg_title">Telegram Bot</h3>
+              <p data-i18n="int_tg_body">
+                Full multimedia: text, images (Vision), voice (Whisper), documents,
+                file generation. YouTube support. ACL security.
+                Owner-only admin: /allow, /deny, /acl.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SECURITY ─── -->
+      <section id="security" class="section section--alt">
+        <div class="container">
+          <h2 class="anim" data-i18n="sec_title">3-Layer Security Architecture</h2>
+          <p class="lead anim" data-i18n="sec_lead">
+            Security isn't a feature — it's the foundation. Three independent layers protect
+            every interaction from prompt to execution.
+          </p>
+
+          <div class="grid grid--3">
+            <div class="card card--glow anim">
+              <div class="card__icon">&#x1f6a8;</div>
+              <h3 data-i18n="sec_1_title">Prompt Guard</h3>
+              <p data-i18n="sec_1_body">
+                WAF for LLM prompts. Detects injection attacks BEFORE reaching the model:
+                role override attempts, system prompt extraction, delimiter injection,
+                encoding attacks (base64/hex), and tool abuse patterns. Full audit logging.
+              </p>
+            </div>
+            <div class="card card--glow anim">
+              <div class="card__icon">&#x1f9f9;</div>
+              <h3 data-i18n="sec_2_title">Input Sanitizer</h3>
+              <p data-i18n="sec_2_body">
+                Blocks dangerous commands BEFORE tool execution: reverse shells (nc -e, bash -i),
+                crypto miners, fork bombs, destructive commands (rm -rf /, mkfs, dd),
+                SQL injection, and path traversal attempts.
+              </p>
+            </div>
+            <div class="card card--glow anim">
+              <div class="card__icon">&#x1f512;</div>
+              <h3 data-i18n="sec_3_title">Secure Channel</h3>
+              <p data-i18n="sec_3_body">
+                API key authentication (Bearer token / X-API-Key), rate limiting per client
+                (60 req/min), Telegram ACL with owner-only admin commands. JWT for dashboard.
+                Zero hardcoded secrets — everything from environment variables.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid--3" style="margin-top: 16px">
+            <div class="card anim">
+              <div class="card__icon">&#x2705;</div>
+              <h3 data-i18n="sec_4_title">Action Confirmations</h3>
+              <p data-i18n="sec_4_body">
+                Dangerous actions require explicit confirmation. Conservative defaults
+                prevent accidental destruction.
+              </p>
+            </div>
+            <div class="card anim">
+              <div class="card__icon">&#x1f510;</div>
+              <h3 data-i18n="sec_5_title">No Secrets in Code</h3>
+              <p data-i18n="sec_5_body">
+                All secrets from .env. Comprehensive .gitignore. Zero hardcoded credentials.
+              </p>
+            </div>
+            <div class="card anim">
+              <div class="card__icon">&#x1f6e1;&#xfe0f;</div>
+              <h3 data-i18n="sec_6_title">Shell Control</h3>
+              <p data-i18n="sec_6_body">
+                HOST_CONTROL_ALLOW_RUN=false by default. SSH key-based auth only.
+                All remote commands require confirmation.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── GCP DEPLOY ─── -->
+      <section id="gcp" class="section">
+        <div class="container">
+          <h2 class="anim" data-i18n="gcp_title">GCP Deployment — One Command</h2>
+          <p class="lead anim" data-i18n="gcp_lead">
+            Tell TokioAI to deploy and everything is created automatically. Tell it to destroy and everything is cleaned up.
+          </p>
+
+          <div class="grid grid--2">
+            <div class="card anim">
+              <h3 data-i18n="gcp_what_title">What Gets Created</h3>
+              <ul class="feature-list">
+                <li data-i18n="gcp_w1">VPC Network + Subnet + Firewall Rules</li>
+                <li data-i18n="gcp_w2">Static External IP for stable DNS</li>
+                <li data-i18n="gcp_w3">Compute Engine VM (e2-medium) + Ubuntu + Docker</li>
+                <li data-i18n="gcp_w4">SSL via Let's Encrypt with auto-renewal</li>
+                <li data-i18n="gcp_w5">Nginx WAF Proxy with 26 signatures</li>
+                <li data-i18n="gcp_w6">Kafka + Zookeeper event pipeline</li>
+                <li data-i18n="gcp_w7">PostgreSQL with WAF schema</li>
+                <li data-i18n="gcp_w8">Real-time ML threat processor</li>
+                <li data-i18n="gcp_w9">SOC Dashboard with JWT auth</li>
+                <li data-i18n="gcp_w10">Dynamic blocklist sidecar</li>
+                <li data-i18n="gcp_w11">DNS configuration (Hostinger API)</li>
+              </ul>
+            </div>
+            <div class="card anim">
+              <h3 data-i18n="gcp_ops_title">Natural Language Operations</h3>
+              <div class="panel">
+                <div class="panel__header">
+                  <span class="dot dot--r"></span>
+                  <span class="dot dot--y"></span>
+                  <span class="dot dot--g"></span>
+                  <span class="panel__title">TokioAI Commands</span>
+                </div>
+                <pre class="panel__code"><code><span class="code-comment"># Deploy full stack on GCP</span>
+"Deploy mysite.com on GCP"
+<span class="code-comment"># &rarr; Creates VM, network, Docker, SSL, DNS</span>
+
+<span class="code-comment"># Destroy all infrastructure</span>
+"Destroy the GCP infrastructure"
+<span class="code-comment"># &rarr; Cleans up everything</span>
+
+<span class="code-comment"># Check status</span>
+"What's the status of the WAF?"
+<span class="code-comment"># &rarr; Shows containers, attacks, blocks</span>
+
+<span class="code-comment"># Block an IP</span>
+"Block IP 1.2.3.4 on the WAF"
+<span class="code-comment"># &rarr; Instant enforcement</span></code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── QUICKSTART ─── -->
+      <section id="quickstart" class="section section--alt">
+        <div class="container">
+          <h2 class="anim" data-i18n="qs_title">Quickstart — Up in 3 Steps</h2>
+          <p class="lead anim" data-i18n="qs_lead">
+            Works on any Linux machine with Docker. Raspberry Pi, laptop, server, or cloud VM.
+          </p>
+
+          <div class="steps">
+            <div class="step anim">
+              <div class="step__num">1</div>
+              <div class="step__body">
+                <h3 data-i18n="qs_1_title">Clone &amp; Configure</h3>
+                <div class="panel">
+                  <pre class="panel__code"><code>git clone https://github.com/TokioAI/TokioAI.git
+cd TokioAI
+cp .env.example .env
+
+<span class="code-comment"># Edit .env with your API keys:</span>
+<span class="code-comment"># ANTHROPIC_API_KEY or OPENAI_API_KEY</span>
+<span class="code-comment"># POSTGRES_PASSWORD</span>
+<span class="code-comment"># TELEGRAM_BOT_TOKEN (optional)</span>
+nano .env</code></pre>
+                </div>
+              </div>
+            </div>
+            <div class="step anim">
+              <div class="step__num">2</div>
+              <div class="step__body">
+                <h3 data-i18n="qs_2_title">Start the Stack</h3>
+                <div class="panel">
+                  <pre class="panel__code"><code>docker compose up -d --build
+
+<span class="code-comment"># Verify everything is running</span>
+docker compose ps
+
+<span class="code-comment"># Or use the setup wizard</span>
+python3 -m tokio_agent.setup_wizard</code></pre>
+                </div>
+              </div>
+            </div>
+            <div class="step anim">
+              <div class="step__num">3</div>
+              <div class="step__body">
+                <h3 data-i18n="qs_3_title">Use TokioAI</h3>
+                <div class="panel">
+                  <pre class="panel__code"><code><span class="code-comment"># Via REST API</span>
+curl -X POST http://localhost:8000/chat \
+  -H "Authorization: Bearer YOUR_KEY" \
+  -d '{"message": "Deploy mysite.com on GCP"}'
+
+<span class="code-comment"># Via Telegram — just talk to your bot</span>
+<span class="code-comment"># Via CLI</span>
+python3 -m tokio_agent.cli</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout anim">
+            <div class="callout__body">
+              <h3 data-i18n="qs_deploy_title">3 Deployment Modes</h3>
+              <p data-i18n="qs_deploy_body">
+                <strong>Full Local:</strong> Everything on your machine (dev, testing, Raspberry Pi).<br>
+                <strong>Hybrid:</strong> Agent local, WAF/Kafka/DB in cloud.<br>
+                <strong>Full Cloud:</strong> Everything on GCP. Maximum availability.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── TECH STACK ─── -->
+      <section class="section">
+        <div class="container">
+          <h2 class="anim" data-i18n="tech_title">Technology Stack</h2>
+          <div class="grid grid--3">
+            <div class="card anim">
+              <h3>Backend</h3>
+              <p class="tech-list">Python 3.11+ &middot; FastAPI &middot; Uvicorn &middot; PyJWT &middot; Psycopg2 &middot; kafka-python &middot; Paramiko &middot; Rich</p>
+            </div>
+            <div class="card anim">
+              <h3>Infrastructure</h3>
+              <p class="tech-list">Docker &middot; Docker Compose &middot; Nginx &middot; Apache Kafka &middot; Zookeeper &middot; PostgreSQL 15+ &middot; Certbot</p>
+            </div>
+            <div class="card anim">
+              <h3>Cloud</h3>
+              <p class="tech-list">Google Cloud Platform &middot; Compute Engine &middot; VPC &middot; Cloud SDK (Python) &middot; Cloudflare Tunnels</p>
+            </div>
+            <div class="card anim">
+              <h3>AI / LLM</h3>
+              <p class="tech-list">Anthropic Claude (Opus 4, Sonnet 4) &middot; OpenAI GPT-4o &middot; Google Gemini 2.0 &middot; Multi-provider fallback</p>
+            </div>
+            <div class="card anim">
+              <h3>Security</h3>
+              <p class="tech-list">Prompt Guard &middot; Input Sanitizer &middot; JWT &middot; API Key Auth &middot; Rate Limiting &middot; ACL &middot; AbuseIPDB</p>
+            </div>
+            <div class="card anim">
+              <h3>Integrations</h3>
+              <p class="tech-list">Telegram Bot API &middot; Home Assistant &middot; Alexa &middot; Hostinger DNS &middot; OpenWrt SSH &middot; Cloudflare</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── LICENSE ─── -->
+      <section id="license" class="section section--alt">
+        <div class="container">
+          <h2 class="anim" data-i18n="lic_title">Open Source (GPLv3)</h2>
+          <p class="lead anim" data-i18n="lic_lead">
+            TokioAI is free and open source under GNU GPL v3.0.
+          </p>
+          <div class="grid grid--3">
+            <div class="card anim">
+              <h3 data-i18n="lic_1_title">Use &amp; Modify</h3>
+              <p data-i18n="lic_1_body">Use, study, modify and redistribute freely for any purpose.</p>
+            </div>
+            <div class="card anim">
+              <h3 data-i18n="lic_2_title">Share Alike</h3>
+              <p data-i18n="lic_2_body">If you distribute, share your source under GPLv3.</p>
+            </div>
+            <div class="card anim">
+              <h3 data-i18n="lic_3_title">As Is</h3>
+              <p data-i18n="lic_3_body">Provided without warranty. See LICENSE for full terms.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ─── FOOTER ─── -->
+    <footer class="footer">
+      <div class="container footer__inner">
+        <div class="footer__brand">
+          <div class="spiral-logo spiral-xs" id="footerLogo"></div>
+          <span>TokioAI</span>
+        </div>
+        <span class="muted" data-i18n="footer_copy">Copyright &copy; 2026 TokioAI &mdash; GPLv3 &middot; Tokio AI Security Research</span>
+        <a class="link" href="https://github.com/TokioAI" target="_blank">GitHub</a>
+      </div>
+    </footer>
+
+    <!-- ─── SCROLL TO TOP ─── -->
+    <button class="scroll-top" id="scrollTop" type="button" aria-label="Scroll to top">&#x2191;</button>
+
+    <script src="app.js"></script>
+  </body>
+</html>
