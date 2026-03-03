@@ -32,23 +32,17 @@
 
 ## Demo
 
-```
-🌀 tokio> restart the nginx container and show me the last 20 lines of its logs
+### WAF & SOC Dashboard — Real-time threat detection
 
-  🔧 docker restart nginx...
-  🔧 docker logs --tail 20 nginx...
+https://github.com/TokioAI/tokioai-v1.8/raw/main/media/tokio-waf-dashboard.mp4
 
-✅ Container nginx restarted successfully.
+> Supreme SOC Dashboard v3: blocked IPs, live traffic, OWASP breakdown, world attack map, heatmap, and real-time threat feed with multi-phase correlation.
 
-Last 20 lines:
-2026/03/01 14:23:01 [notice] 1#1: signal process started
-2026/03/01 14:23:01 [notice] 1#1: using the "epoll" event method
-2026/03/01 14:23:01 [notice] 1#1: nginx/1.25.4
-2026/03/01 14:23:01 [notice] 1#1: start worker processes
-...
+### Telegram Bot — Autonomous threat response
 
-🌀 tokio> _
-```
+https://github.com/TokioAI/tokioai-v1.8/raw/main/media/tokio-telegram-bot.mp4
+
+> Multi-phase attack detection, IP profiling (ASN, country, risk score 0.99), automatic blocking, and WiFi router security audit — all from a single Telegram chat.
 
 ---
 
