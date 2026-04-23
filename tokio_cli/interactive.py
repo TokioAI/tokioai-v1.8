@@ -922,7 +922,7 @@ def _slash_waf():
     _safe_print(f"\n  {C_BOLD}🔥 WAF Defense{C_RESET}\n")
     out = _quick_ssh(_GCP_IP, _SSH_GCP, "osboxes",
         'curl -s -X POST http://127.0.0.1:8000/api/auth/login -H "Content-Type: application/json" '
-        '-d \'{"username":"admin","password":"REDACTED_PASSWORD"}\' 2>/dev/null')
+        '-d \'{"username":"admin","password":"' + _os.getenv("WAF_DASHBOARD_PASS", "") + '"}\' 2>/dev/null')
     if not out:
         _safe_print(f"  {C_BRIGHT_RED}❌ WAF API unreachable{C_RESET}\n")
         return

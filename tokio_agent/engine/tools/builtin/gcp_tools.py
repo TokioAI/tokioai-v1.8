@@ -140,7 +140,7 @@ async def _waf_dashboard_request(endpoint: str, method: str = "GET",
 
     in_docker = _is_running_in_gcp_docker()
     base_url = os.getenv("WAF_DASHBOARD_URL", "http://tokio-gcp-dashboard-api:8000") if in_docker else "http://127.0.0.1:8000"
-    password = os.getenv("DASHBOARD_PASSWORD", os.getenv("TOKIO_WAF_PASS", "REDACTED_PASSWORD"))
+    password = os.getenv("DASHBOARD_PASSWORD", os.getenv("TOKIO_WAF_PASS", ""))
 
     _ssh_prefix = (
         f"ssh -i {_GCP_SSH_KEY} -o StrictHostKeyChecking=no "

@@ -81,6 +81,11 @@ def build_system_prompt(
     if runtime_ctx:
         sections.append(runtime_ctx)
 
+    # 5a. Robot fleet context
+    robot_ctx = _build_robot_context()
+    if robot_ctx:
+        sections.append(robot_ctx)
+
     # 5b. Entity & self-healing context
     entity_ctx = _build_entity_context()
     if entity_ctx:
@@ -156,6 +161,37 @@ def _build_smart_memory(memory: str, max_lines: int = 60) -> str:
     result = [l for l in lines if l in selected]
 
     return "# General Memory\n" + "\n".join(result)
+
+
+def _build_robot_context() -> str:
+    """Build context about robot fleet (PiDog, PiCar, Drone)."""
+    return (
+        "# Robot Fleet\n"
+        "You control a fleet of robots. Use the right tool for each one:\n"
+        "## PiDog (192.168.8.210:5001) — Quadruped robot dog\n"
+        "- Tool: pidog(action, params)\n"
+        "- Has: ultrasonic sensor, touch sensor, RGB LEDs, speaker, camera\n"
+        "- Movement: do_action with name=forward/backward/turn_left/turn_right/trot/stand/sit\n"
+        "- Fun: preset with name=bark/howling/hand_shake/high_five/attack/body_twisting\n"
+        "- Autonomous: patrol (walks + avoids obstacles), interactive (reacts to touch)\n"
+        "- Head: head(yaw, roll, pitch) — look around\n"
+        "- ALWAYS stand before walking actions. The proxy does this automatically.\n"
+        "- Use sensors to check distance before moving. Distance < 15cm = obstacle.\n"
+        "## PiCar-X (192.168.8.107:5002) — 4-wheel robot car\n"
+        "- Tool: picar(action, params)\n"
+        "- Has: ultrasonic sensor, grayscale sensor, camera, 2 motors, 3 servos\n"
+        "- Movement: move(direction=forward/backward/left/right, speed=30, duration=2)\n"
+        "- Camera: camera(pan, tilt) or look(direction=center/left/right/up/down)\n"
+        "- Autonomous: obstacle_avoid, line_track, patrol(pattern=square/zigzag/circle)\n"
+        "- Battery: check via status — below 7V is low!\n"
+        "- ALWAYS check sensors/status before starting autonomous modes.\n"
+        "## Safety Rules for ALL robots\n"
+        "- NEVER send movement commands without checking distance sensor first.\n"
+        "- If distance < 15cm, stop or go backward before turning.\n"
+        "- Keep speeds reasonable (30-50%) indoors.\n"
+        "- Use stop/kill for emergencies.\n"
+        "- Both robots have cameras — use snapshot to see what they see.\n"
+    )
 
 
 def _build_runtime_context() -> str:

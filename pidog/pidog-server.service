@@ -1,0 +1,22 @@
+[Unit]
+Description=PiDog Server v10.0 (100% SunFounder)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStartPre=/usr/bin/pinctrl set 12 op dh
+ExecStart=/usr/bin/python3 /home/mrmoz/pidog_server.py
+Environment=PYTHONPATH=/home/mrmoz/pidog:/usr/local/lib/python3.13/dist-packages
+Environment=SUDO_USER=mrmoz
+WorkingDirectory=/home/mrmoz
+Restart=on-failure
+RestartSec=5
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

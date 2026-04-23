@@ -19,7 +19,7 @@ RASPI_API = os.getenv("RASPI_API_URL", "http://100.100.80.12:5000")
 DRONE_API = os.getenv("DRONE_API_URL", "http://100.100.80.12:5001")
 WAF_API = os.getenv("WAF_DASHBOARD_URL", "http://127.0.0.1:8000")
 WAF_USER = os.getenv("WAF_DASHBOARD_USER", "admin")
-WAF_PASS = os.getenv("WAF_DASHBOARD_PASS", "REDACTED_PASSWORD")
+WAF_PASS = os.getenv("WAF_DASHBOARD_PASS", "")
 _waf_token_cache = {"token": "", "expires": 0}
 CLI_API = os.getenv("CLI_SERVICE_URL", "http://tokio-agent:8000")
 

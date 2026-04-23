@@ -740,11 +740,22 @@ class TokioEntity:
         self._boot_time = time.monotonic()
         self._pulse = 0.0
 
+        # Robot fleet state (PiDog + PiCar)
+        self._pidog_status = {}
+        self._pidog_last_poll = 0.0
+        self._picar_status = {}
+        self._picar_last_poll = 0.0
+        self._pidog_frame = None  # latest camera frame
+        self._picar_frame = None
+
         # QR code — GitHub repo link
         self._qr_surface = self._generate_qr("https://github.com/TokioAI/tokioai-v1.8")
 
         # Start drone monitor thread
         threading.Thread(target=self._drone_monitor_loop, daemon=True).start()
+
+        # Start robot fleet monitor thread
+        threading.Thread(target=self._robot_monitor_loop, daemon=True).start()
 
         # Start HA health monitor thread
         threading.Thread(target=self._ha_health_loop, daemon=True).start()
@@ -1098,6 +1109,62 @@ class TokioEntity:
                     proxy_fail_count = 0  # reset, try again later
 
             time.sleep(DRONE_POLL_INTERVAL)
+
+    def _robot_monitor_loop(self):
+        """Poll PiDog and PiCar status + camera snapshots periodically."""
+        import requests as req
+        time.sleep(8)  # let other things boot first
+        while self._running:
+            # PiDog
+            try:
+                r = req.get("http://192.168.8.210:5001/status", timeout=3)
+                if r.status_code == 200:
+                    self._pidog_status = r.json()
+                    self._pidog_last_poll = time.monotonic()
+                    # Also get sensors
+                    try:
+                        sr = req.get("http://192.168.8.210:5001/sensors", timeout=3)
+                        if sr.status_code == 200:
+                            self._pidog_status.update(sr.json())
+                    except Exception:
+                        pass
+                # Snapshot (every 5s)
+                if time.monotonic() - self._pidog_last_poll < 2:
+                    try:
+                        sr = req.get("http://192.168.8.210:5001/snapshot", timeout=5)
+                        if sr.status_code == 200 and sr.headers.get("content-type", "").startswith("image"):
+                            import numpy as np
+                            arr = np.frombuffer(sr.content, dtype=np.uint8)
+                            frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+                            if frame is not None:
+                                self._pidog_frame = frame
+                    except Exception:
+                        pass
+            except Exception:
+                self._pidog_status = {}
+
+            # PiCar
+            try:
+                r = req.get("http://192.168.8.107:5002/status", timeout=3)
+                if r.status_code == 200:
+                    self._picar_status = r.json()
+                    self._picar_last_poll = time.monotonic()
+                # Snapshot
+                if time.monotonic() - self._picar_last_poll < 2:
+                    try:
+                        sr = req.get("http://192.168.8.107:5002/snapshot", timeout=5)
+                        if sr.status_code == 200 and sr.headers.get("content-type", "").startswith("image"):
+                            import numpy as np
+                            arr = np.frombuffer(sr.content, dtype=np.uint8)
+                            frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+                            if frame is not None:
+                                self._picar_frame = frame
+                    except Exception:
+                        pass
+            except Exception:
+                self._picar_status = {}
+
+            time.sleep(5)
 
     def _hailo_detect_persons(self, frame):
         """Run Hailo inference on FPV frame and return person bboxes.
@@ -2776,11 +2843,13 @@ class TokioEntity:
             panel_y = self._draw_ha_panel(panel_y)
             panel_y = self._draw_health_panel(panel_y)
             panel_y = self._draw_coffee_panel(panel_y)
+            panel_y = self._draw_robot_panel(panel_y)
             panel_y = self._draw_services_panel(panel_y)
             self._draw_telegram_panel(panel_y)
             # Overlays
             self._draw_camera_pip()
             self._draw_fpv_pip()
+            self._draw_robot_cameras()
             self._draw_qr_code()
             self._draw_voice()
             self._draw_drone_overlay()
@@ -2799,6 +2868,157 @@ class TokioEntity:
         if self.vision:
             self.vision.release()
         pygame.quit()
+
+    def _draw_robot_panel(self, y_start: int = 620) -> int:
+        """Combined PiDog + PiCar status panel. Returns bottom Y."""
+        pidog = self._pidog_status
+        picar = self._picar_status
+        if not pidog and not picar:
+            return y_start
+
+        x = 10
+        panel_w = 350
+        now = time.monotonic()
+
+        # Calculate panel height
+        lines = 0
+        if pidog:
+            lines += 3  # header + status + sensors
+        if picar:
+            lines += 3
+        panel_h = 24 + lines * 16 + 10
+
+        panel_surf = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
+        panel_surf.fill((4, 8, 20, 235))
+        self.screen.blit(panel_surf, (x - 5, y_start - 5))
+
+        # Border color based on activity
+        active = (pidog.get("patrol") or pidog.get("interactive") or
+                  picar.get("moving", False))
+        border_color = (50, 180, 120) if active else C_BORDER_HI
+        pygame.draw.rect(self.screen, border_color,
+                         (x - 5, y_start - 5, panel_w, panel_h), 1)
+
+        y = y_start
+        hdr = self.font_panel_header.render("ROBOT FLEET", True, (50, 180, 120))
+        self.screen.blit(hdr, (x + 2, y))
+
+        # Online count
+        online = sum(1 for s in [pidog, picar] if s)
+        cnt_surf = self.font_panel_body.render(f"{online}/2 online", True, C_TEXT_OK if online == 2 else C_TEXT_WARN)
+        self.screen.blit(cnt_surf, (x + panel_w - cnt_surf.get_width() - 10, y + 2))
+        y += 20
+        pygame.draw.line(self.screen, C_BORDER_HI, (x, y), (x + panel_w - 15, y), 1)
+        y += 3
+
+        # PiDog
+        if pidog:
+            ready = pidog.get("ready", False)
+            icon = "OK" if ready else "OFF"
+            icon_color = C_TEXT_OK if ready else C_TEXT_DANGER
+            surf = self.font_panel_body.render(f"  PiDog: {icon}", True, icon_color)
+            self.screen.blit(surf, (x + 2, y))
+            # Action status
+            action = pidog.get("last_action", "?")
+            patrol = pidog.get("patrol", False)
+            inter = pidog.get("interactive", False)
+            if patrol:
+                st = "PATROL"
+                st_color = (255, 180, 50)
+            elif inter:
+                st = "INTERACTIVE"
+                st_color = (180, 100, 255)
+            else:
+                st = action
+                st_color = C_TEXT_DIM
+            st_surf = self.font_panel_body.render(st, True, st_color)
+            self.screen.blit(st_surf, (x + panel_w - st_surf.get_width() - 10, y))
+            y += 16
+
+            # PiDog sensors from last poll
+            age = now - self._pidog_last_poll
+            if age < 10:
+                dist_text = f"    dist: {pidog.get('distance_cm', '?')}cm"
+                surf2 = self.font_panel_body.render(dist_text[:30], True, C_TEXT_DIM)
+                self.screen.blit(surf2, (x + 2, y))
+            else:
+                surf2 = self.font_panel_body.render("    (offline)", True, C_TEXT_DANGER)
+                self.screen.blit(surf2, (x + 2, y))
+            y += 16
+
+        # PiCar
+        if picar:
+            ready = picar.get("initialized", False)
+            icon = "OK" if ready else "OFF"
+            icon_color = C_TEXT_OK if ready else C_TEXT_DANGER
+            surf = self.font_panel_body.render(f"  PiCar: {icon}", True, icon_color)
+            self.screen.blit(surf, (x + 2, y))
+            # Movement
+            moving = picar.get("moving", False)
+            direction = picar.get("direction", "stopped")
+            if moving:
+                speed = picar.get("speed", 0)
+                mv_text = f"{direction} @{speed}%"
+                mv_color = (255, 180, 50)
+            else:
+                mv_text = "stopped"
+                mv_color = C_TEXT_DIM
+            mv_surf = self.font_panel_body.render(mv_text, True, mv_color)
+            self.screen.blit(mv_surf, (x + panel_w - mv_surf.get_width() - 10, y))
+            y += 16
+
+            # PiCar sensors
+            bat = picar.get("battery_v", -1)
+            ultra = picar.get("ultrasonic_cm", -1)
+            bat_color = C_TEXT_OK if bat > 7.5 else C_TEXT_WARN if bat > 7.0 else C_TEXT_DANGER
+            sensor_text = f"    bat:{bat:.1f}V  dist:{ultra:.0f}cm"
+            surf3 = self.font_panel_body.render(sensor_text[:32], True, bat_color)
+            self.screen.blit(surf3, (x + 2, y))
+            y += 16
+
+        return y + 8
+
+    def _draw_robot_cameras(self):
+        """Draw PiDog and PiCar camera feeds as small PIPs below FPV."""
+        CAM_W, CAM_H = 140, 105
+        RIGHT_X = SCREEN_W - CAM_W - PIP_MARGIN
+        # Position below FPV pip (FPV ends at FPV_Y + FPV_H)
+        ROBOT_CAM_Y1 = FPV_Y + FPV_H + 10   # PiDog
+        ROBOT_CAM_Y2 = ROBOT_CAM_Y1 + CAM_H + 8  # PiCar
+
+        # PiDog camera
+        if self._pidog_frame is not None:
+            try:
+                small = cv2.resize(self._pidog_frame, (CAM_W, CAM_H))
+                small = cv2.cvtColor(small, cv2.COLOR_BGR2RGB)
+                surf = pygame.surfarray.make_surface(small.swapaxes(0, 1))
+                self.screen.blit(surf, (RIGHT_X, ROBOT_CAM_Y1))
+                pygame.draw.rect(self.screen, (50, 180, 120),
+                                 (RIGHT_X, ROBOT_CAM_Y1, CAM_W, CAM_H), 2)
+                label = self.font_pip_label.render("PiDog", True, (50, 180, 120))
+                self.screen.blit(label, (RIGHT_X + 4, ROBOT_CAM_Y1 + 3))
+                if int(time.monotonic() * 2) % 2:
+                    pygame.draw.circle(self.screen, (0, 255, 0),
+                                       (RIGHT_X + CAM_W - 8, ROBOT_CAM_Y1 + 8), 4)
+            except Exception:
+                pass
+
+        # PiCar camera
+        if self._picar_frame is not None:
+            try:
+                small = cv2.resize(self._picar_frame, (CAM_W, CAM_H))
+                small = cv2.cvtColor(small, cv2.COLOR_BGR2RGB)
+                surf = pygame.surfarray.make_surface(small.swapaxes(0, 1))
+                self.screen.blit(surf, (RIGHT_X, ROBOT_CAM_Y2))
+                pygame.draw.rect(self.screen, (50, 120, 200),
+                                 (RIGHT_X, ROBOT_CAM_Y2, CAM_W, CAM_H), 2)
+                label = self.font_pip_label.render("PiCar", True, (50, 120, 200))
+                self.screen.blit(label, (RIGHT_X + 4, ROBOT_CAM_Y2 + 3))
+                if int(time.monotonic() * 2) % 2:
+                    pygame.draw.circle(self.screen, (0, 255, 0),
+                                       (RIGHT_X + CAM_W - 8, ROBOT_CAM_Y2 + 8), 4)
+            except Exception:
+                pass
 
     def _draw_drone_overlay(self):
         """Draw drone tracking overlay on screen."""

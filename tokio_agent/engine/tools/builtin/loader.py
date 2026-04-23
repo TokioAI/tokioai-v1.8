@@ -738,6 +738,59 @@ def load_builtin_tools(registry: ToolRegistry) -> int:
     except Exception as e:
         logger.warning(f"⚠️ PiCar-X tools no disponibles: {e}")
 
+    # ── PiDog Robot Tools (Raspberry Pi) ───────────────────────────────
+    try:
+        from .pidog_tools import pidog_control
+
+        registry.register(
+            name="pidog",
+            description=(
+                "Control del robot PiDog (Sunfounder) via Proxy en Raspberry Pi. "
+                "Robot cuadrupedo con camara, sensor ultrasonico, touch sensor, RGB LEDs, speaker. "
+                "Acciones: status (estado completo), sensors (distancia/touch), "
+                "sounds (listar sonidos), actions (listar acciones disponibles), "
+                "do_action (stand/sit/forward/backward/turn_left/turn_right/trot/lie/stretch/push_up/wag_tail/shake_head), "
+                "preset (bark/howling/hand_shake/high_five/scratch/lick_hand/attack/body_twisting/pant), "
+                "speak (reproducir sonido: single_bark_1/howling/angry/growl_1/woohoo), "
+                "wake_up (secuencia despertar completa), "
+                "patrol/patrullar (patrulla autonoma con evasion de obstaculos), "
+                "stop_patrol (detener patrulla), "
+                "interactive/interactivo (modo reactivo: responde al tacto y obstaculos), "
+                "stop_interactive (detener interactivo), "
+                "head/cabeza (mover cabeza: yaw/roll/pitch), "
+                "tail/cola (mover cola: angle), "
+                "rgb (LEDs: mode=breath/flash/off, color=blue/red/purple/green), "
+                "stop/parar (detener todo), snapshot/foto (foto con camara)."
+            ),
+            category="IoT",
+            parameters={
+                "action": "Accion: status, sensors, sounds, actions, do_action, preset, speak, wake_up, patrol, stop_patrol, interactive, stop_interactive, head, tail, rgb, stop, snapshot",
+                "params": "name (accion/preset/sonido), steps, speed, duration, yaw, roll, pitch, angle, mode, color",
+            },
+            executor=pidog_control,
+            examples=[
+                'TOOL:pidog({"action": "status"})',
+                'TOOL:pidog({"action": "sensors"})',
+                'TOOL:pidog({"action": "do_action", "params": {"name": "forward", "steps": 10}})',
+                'TOOL:pidog({"action": "do_action", "params": {"name": "sit"}})',
+                'TOOL:pidog({"action": "preset", "params": {"name": "bark"}})',
+                'TOOL:pidog({"action": "preset", "params": {"name": "hand_shake"}})',
+                'TOOL:pidog({"action": "speak", "params": {"name": "howling"}})',
+                'TOOL:pidog({"action": "wake_up"})',
+                'TOOL:pidog({"action": "patrol"})',
+                'TOOL:pidog({"action": "stop_patrol"})',
+                'TOOL:pidog({"action": "interactive", "params": {"duration": 30}})',
+                'TOOL:pidog({"action": "head", "params": {"yaw": 30, "pitch": -15}})',
+                'TOOL:pidog({"action": "tail", "params": {"angle": 45}})',
+                'TOOL:pidog({"action": "rgb", "params": {"mode": "breath", "color": "purple"}})',
+                'TOOL:pidog({"action": "stop"})',
+                'TOOL:pidog({"action": "snapshot"})',
+            ],
+        )
+        count += 1
+    except Exception as e:
+        logger.warning(f"⚠️ PiDog tools no disponibles: {e}")
+
     # ── Coffee Machine Tools (Raspberry Pi) ─────────────────────────────
     try:
         from .coffee_tools import coffee_control

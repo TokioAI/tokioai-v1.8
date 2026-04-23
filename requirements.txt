@@ -22,6 +22,7 @@ docker>=7.1.0
 
 # Document generation
 fpdf2>=2.8.0
+reportlab>=4.0
 python-pptx>=1.0.0
 PyPDF2>=3.0.0
 

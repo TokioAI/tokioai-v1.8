@@ -857,12 +857,14 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ── Voice / Audio handling ──
 
 async def _transcribe_with_gemini(audio_path: str) -> Optional[str]:
-    """Transcribe audio using Gemini REST API."""
+    """Transcribe audio using Gemini REST API with retry on 429."""
     if not GEMINI_API_KEY:
+        logger.warning("🎤 GEMINI_API_KEY not set, skipping Gemini transcription")
         return None
     try:
         audio_bytes = pathlib.Path(audio_path).read_bytes()
         b64_data = base64.b64encode(audio_bytes).decode("ascii")
+        logger.info(f"🎤 Gemini: audio size={len(audio_bytes)} bytes")
 
         # Detect audio MIME type
         ext = pathlib.Path(audio_path).suffix.lower()
@@ -873,37 +875,54 @@ async def _transcribe_with_gemini(audio_path: str) -> Optional[str]:
         payload = {
             "contents": [{
                 "parts": [
-                    {"text": "Transcribe this audio to text in Spanish. Only return the transcription."},
+                    {"text": "Transcribe this audio to text in Spanish. Only return the transcription, nothing else."},
                     {"inline_data": {"mime_type": mime, "data": b64_data}},
                 ]
             }],
             "generationConfig": {"temperature": 0.1, "maxOutputTokens": 2048},
         }
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+        # Try multiple models on 429
+        models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite"]
 
         async with httpx.AsyncClient(timeout=60.0) as client:
-            resp = await client.post(url, json=payload)
-            if resp.status_code != 200:
-                logger.debug(f"Gemini transcription HTTP {resp.status_code}: {resp.text[:200]}")
-                return None
-            data = resp.json()
-            candidates = data.get("candidates", [])
-            if not candidates:
-                return None
-            parts = candidates[0].get("content", {}).get("parts", [])
-            text = "".join(p.get("text", "") for p in parts).strip()
-            return text if text else None
+            for model in models:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
+                for attempt in range(3):
+                    resp = await client.post(url, json=payload)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        candidates = data.get("candidates", [])
+                        if not candidates:
+                            logger.warning(f"🎤 Gemini {model}: no candidates in response")
+                            break
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        text = "".join(p.get("text", "") for p in parts).strip()
+                        if text:
+                            logger.info(f"🎤 Gemini {model} transcribed OK ({len(text)} chars)")
+                            return text
+                        break
+                    elif resp.status_code == 429:
+                        wait = 2 ** (attempt + 1)
+                        logger.warning(f"🎤 Gemini {model} rate limited (429), retry in {wait}s (attempt {attempt+1}/3)")
+                        await asyncio.sleep(wait)
+                    else:
+                        logger.error(f"🎤 Gemini {model} HTTP {resp.status_code}: {resp.text[:300]}")
+                        break
+            logger.error("🎤 All Gemini models failed")
+            return None
     except Exception as e:
-        logger.debug(f"Gemini transcription failed: {e}")
+        logger.error(f"🎤 Gemini transcription exception: {e}")
         return None
 
 
 async def _transcribe_with_whisper(audio_path: str) -> Optional[str]:
     """Transcribe audio using OpenAI Whisper as fallback."""
     if not OPENAI_API_KEY:
+        logger.warning("🎤 OPENAI_API_KEY not set, skipping Whisper")
         return None
     try:
+        logger.info(f"🎤 Trying Whisper transcription: {audio_path}")
         async with httpx.AsyncClient(timeout=60.0) as client:
             with open(audio_path, "rb") as f:
                 resp = await client.post(
@@ -914,10 +933,15 @@ async def _transcribe_with_whisper(audio_path: str) -> Optional[str]:
                 )
             if resp.status_code == 200:
                 data = resp.json()
-                return data.get("text", "").strip() or None
-            logger.debug(f"Whisper API error: {resp.status_code}")
+                text = data.get("text", "").strip()
+                if text:
+                    logger.info(f"🎤 Whisper transcribed OK ({len(text)} chars)")
+                    return text
+                logger.warning("🎤 Whisper returned empty text")
+                return None
+            logger.error(f"🎤 Whisper API error {resp.status_code}: {resp.text[:300]}")
     except Exception as e:
-        logger.debug(f"Whisper transcription failed: {e}")
+        logger.error(f"🎤 Whisper transcription exception: {e}")
     return None
 
 
@@ -948,6 +972,7 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     user_id = update.effective_user.id
     voice = update.message.voice
+    logger.info(f"🎤 Voice message received from {user_id}, duration={voice.duration}s, size={voice.file_size}")
 
     await _safe_send_chat_action(context, chat_id=update.effective_chat.id, action="typing")
 
@@ -970,15 +995,20 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         audio_path = await asyncio.to_thread(_convert_audio_sync, tmp_path)
         if not audio_path:
+            logger.error(f"🎤 Audio conversion failed for {tmp_path}")
             await _safe_reply_text(update, "No pude convertir el audio. Envia como texto.")
             return
+        logger.info(f"🎤 Audio converted: {audio_path}")
 
         # Try Gemini first, then Whisper
         transcription = await _transcribe_with_gemini(audio_path)
+        logger.info(f"🎤 Gemini transcription: {transcription}")
         if not transcription:
             transcription = await _transcribe_with_whisper(audio_path)
+            logger.info(f"🎤 Whisper transcription: {transcription}")
 
         if not transcription:
+            logger.error("🎤 Both Gemini and Whisper failed to transcribe")
             await _safe_reply_text(update, "No se pudo transcribir el audio. Envia como texto.")
             return
 

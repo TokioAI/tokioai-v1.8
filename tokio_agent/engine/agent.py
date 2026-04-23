@@ -526,13 +526,16 @@ class TokioAgent:
 
     def _get_tool_timeout(self, tool_name: str) -> float:
         """Get adaptive timeout for a tool based on its type."""
-        slow_tools = {"gcp_waf_deploy", "gcp_compute", "task_orchestrator", "bash"}
+        slow_tools = {"gcp_waf_deploy", "gcp_compute", "task_orchestrator"}
         medium_tools = {"docker", "host_control", "router_control", "self_heal",
-                        "document", "postgres_query"}
+                        "document", "postgres_query", "bash"}
+        robot_tools = {"pidog", "picar", "drone", "coffee"}
         if tool_name in slow_tools:
             return 300.0
         if tool_name in medium_tools:
             return 120.0
+        if tool_name in robot_tools:
+            return 30.0
         return 60.0
 
     def _extract_tool_calls(
